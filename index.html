@@ -1,35 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-g">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shipment Management App</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Shipment Management</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS for Excel Download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Theme Color for PWA -->
+    <meta name="theme-color" content="#4a90e2">
     <style>
-        /* Simple Inter font */
-        body {
-            font-family: 'Inter', sans-serif;
+        /* Custom styles */
+        body { font-family: 'Inter', sans-serif; }
+        /* Hide elements until fully loaded */
+        .hidden { display: none; }
+        /* Custom alert box */
+        #alert-box {
+            transition: opacity 0.3s ease-in-out;
         }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 10px; }
-        
-        /* Custom Modal Styles */
-        #custom-modal-backdrop {
-            transition: opacity 0.2s ease-in-out;
+        /* Custom datalist styles */
+        input[list]::-webkit-calendar-picker-indicator {
+            display: none;
         }
-        #custom-modal-box {
-            transition: transform 0.2s ease-in-out;
-        }
-        
         /* Loading Spinner */
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
+        #loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin {
@@ -38,705 +40,905 @@
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 min-h-screen">
 
-    <!-- Login Screen -->
-    <div id="login-screen" class="fixed inset-0 bg-gray-800 z-50 flex items-center justify-center">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
-            <h2 class="text-3xl font-bold text-center mb-6">Shipment App Login</h2>
-            <form id="login-form" class="space-y-4">
-                <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-                    <input type="text" id="username" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+    <!-- Loading Spinner Overlay -->
+    <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div id="loader"></div>
+    </div>
+
+    <!-- Alert Box -->
+    <div id="alert-box" class="fixed top-5 right-5 p-4 rounded-lg shadow-md z-50 hidden"
+         onclick="this.classList.add('hidden')">
+        <span id="alert-message"></span>
+    </div>
+
+    <!-- Login Page -->
+    <div id="login-page" class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Shipment Login</h2>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">User Name</label>
+                    <input type="text" id="username" name="username" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="password" name="password" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div id="login-error" class="text-sm text-red-600 hidden"></div>
-                <div>
-                    <button type="submit" id="login-button" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold flex items-center justify-center">
-                        Login
-                    </button>
-                </div>
+                <button type="submit"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md shadow-lg hover:bg-blue-700 transition duration-300 font-semibold">
+                    Login
+                </button>
             </form>
         </div>
     </div>
 
-    <!-- Main App (Initially Hidden) -->
-    <div id="main-app" class="flex h-screen hidden">
-        <!-- Sidebar Navigation -->
-        <aside class="w-64 bg-gray-800 text-white flex flex-col fixed h-full">
-            <div class="p-5 border-b border-gray-700">
-                <h1 class="text-2xl font-bold text-center">Shipment App</h1>
-            </div>
-            <nav class="flex-grow p-4 space-y-2">
-                <!-- Menu Link: Add Shipment -->
-                <a href="#" 
-                   id="menu-add-shipment"
-                   class="menu-link flex items-center px-4 py-3 rounded-lg transition-all duration-200" 
-                   data-target="page-add-shipment">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
-                    Add Shipment
-                </a>
-
-                <!-- Menu Link: Shipment Details -->
-                <a href="#" 
-                   id="menu-details"
-                   class="menu-link flex items-center px-4 py-3 rounded-lg transition-all duration-200" 
-                   data-target="page-details">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h6a1 1 0 100-2H7zm0 4a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
-                    </svg>
-                    Shipment Details
-                </a>
-
-                <!-- Menu Link: Priceing (Pricing) -->
-                <a href="#" 
-                   id="menu-priceing"
-                   class="menu-link flex items-center px-4 py-3 rounded-lg transition-all duration-200" 
-                   data-target="page-priceing">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M8.433 7.418c.155-.103.346-.103.501 0l3.13 2.087a.25.25 0 010 .416l-3.13 2.087a.25.25 0 01-.501 0v-4.174z" />
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0 1a9 9 0 100-18 9 9 0 000 18z" clip-rule="evenodd" />
-                    </svg>
-                    Priceing
-                </a>
+    <!-- Main Application -->
+    <div id="app" class="hidden">
+        <!-- Header / Navbar -->
+        <header class="bg-white shadow-md sticky top-0 z-10">
+            <nav class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
+                <div class="text-2xl font-bold text-blue-600">Shipment App</div>
+                <div class="flex items-center space-x-2">
+                    <div id="menu-items" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                        <button data-page="add-shipment-page" class="nav-button bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Add Shipment</button>
+                        <button data-page="shipment-details-page" class="nav-button bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">Shipment Details</button>
+                        <button data-page="pricing-page" class="nav-button bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">Pricing</button>
+                    </div>
+                    <button id="logout-button" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 ml-4">Logout</button>
+                </div>
             </nav>
-            <div class="p-4 border-t border-gray-700 text-center text-sm text-gray-400">
-                &copy; 2025 Your Company
-            </div>
-        </aside>
+        </header>
 
         <!-- Main Content Area -->
-        <main class="flex-grow p-8 ml-64 overflow-auto">
-            
-            <!-- Page 1: Add Shipment (Default) -->
-            <div id="page-add-shipment" class="page-content">
+        <main class="container mx-auto p-4 mt-4">
+
+            <!-- Page: Add Shipment -->
+            <div id="add-shipment-page" class="app-page">
                 <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 border-b pb-4">Add New Shipment</h2>
-                    
-                    <!-- Shipment Form -->
-                    <form id="shipment-form" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <!-- PRODUCTS CODE -->
-                            <div class="col-span-1 md:col-span-1">
-                                <label for="product-code" class="block text-sm font-medium text-gray-700">Products Code</label>
-                                <input type="text" id="product-code" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <div id="product-history-results" class="mt-2 text-xs space-y-1"></div>
-                            </div>
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Add New Shipment</h2>
+                    <form id="shipment-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        
+                        <!-- Product Code -->
+                        <div class="col-span-1 md:col-span-2 lg:col-span-3">
+                            <label for="product-code" class="block text-sm font-medium text-gray-700">PRODUCTS CODE</label>
+                            <input type="text" id="product-code" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <div id="product-history" class="text-sm text-gray-600 mt-1 p-2 bg-gray-50 rounded hidden"></div>
+                        </div>
 
-                            <!-- BRAND NAME -->
-                            <div class="col-span-1 md:col-span-1">
-                                <label for="brand-name" class="block text-sm font-medium text-gray-700">Brand Name</label>
-                                <div class="flex">
-                                    <input type="text" id="brand-name" list="brand-suggestions-list" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                    <datalist id="brand-suggestions-list"></datalist>
-                                    <button type="button" id="add-brand-btn" class="hidden mt-1 px-3 py-2 bg-green-500 text-white rounded-r-md hover:bg-green-600">Add</button>
-                                </div>
+                        <!-- Brand Name -->
+                        <div>
+                            <label for="brand-name" class="block text-sm font-medium text-gray-700">BRAND NAME</label>
+                            <div class="flex">
+                                <input type="text" id="brand-name" list="brand-list" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <button type="button" id="add-brand-btn" class="mt-1 px-3 py-2 bg-green-500 text-white rounded-r-md hover:bg-green-600 hidden">+</button>
                             </div>
+                            <datalist id="brand-list"></datalist>
+                        </div>
+                        
+                        <!-- Vendor Name -->
+                        <div>
+                            <label for="vendor-name" class="block text-sm font-medium text-gray-700">VENDOR NAME</label>
+                             <div class="flex">
+                                <input type="text" id="vendor-name" list="vendor-list" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <button type="button" id="add-vendor-btn" class="mt-1 px-3 py-2 bg-green-500 text-white rounded-r-md hover:bg-green-600 hidden">+</button>
+                            </div>
+                            <datalist id="vendor-list"></datalist>
+                        </div>
 
-                            <!-- QUANTITY -->
-                            <div>
-                                <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-                                <input type="number" id="quantity" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
+                        <!-- Shipment Date -->
+                        <div>
+                            <label for="shipment-date" class="block text-sm font-medium text-gray-700">SHIPMENT DATE</label>
+                            <input type="date" id="shipment-date" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <span id="date-day" class="text-sm text-gray-500"></span>
+                        </div>
 
-                            <!-- PKR -->
-                            <div>
-                                <label for="pkr" class="block text-sm font-medium text-gray-700">PKR</label>
-                                <input type="number" id="pkr" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
+                        <!-- Quantity -->
+                        <div>
+                            <label for="quantity" class="block text-sm font-medium text-gray-700">QUANTITY</label>
+                            <input type="number" id="quantity" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
 
-                            <!-- TOTAL PKR (Auto) -->
-                            <div>
-                                <label for="total-pkr" class="block text-sm font-medium text-gray-700">Total PKR</label>
-                                <input type="text" id="total-pkr" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100" readonly>
-                            </div>
+                        <!-- PKR -->
+                        <div>
+                            <label for="pkr" class="block text-sm font-medium text-gray-700">PKR</label>
+                            <input type="number" id="pkr" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
 
-                            <!-- WEIGHT -->
-                            <div>
-                                <label for="weight" class="block text-sm font-medium text-gray-700">Weight</label>
-                                <input type="number" id="weight" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
+                        <!-- TOTAL PKR (Read-only) -->
+                        <div>
+                            <label for="total-pkr" class="block text-sm font-medium text-gray-700">TOTAL PKR</label>
+                            <input type="number" id="total-pkr" readonly class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
+                        </div>
+                        
+                        <!-- Weight -->
+                        <div>
+                            <label for="weight" class="block text-sm font-medium text-gray-700">WEIGHT</label>
+                            <input type="number" id="weight" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
 
-                            <!-- DISCOUNT % -->
-                            <div>
-                                <label for="discount-percent" class="block text-sm font-medium text-gray-700">Discount %</label>
-                                <input type="number" id="discount-percent" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
+                        <!-- Discount % -->
+                        <div>
+                            <label for="discount-percent" class="block text-sm font-medium text-gray-700">DISCOUNT %</label>
+                            <input type="number" id="discount-percent" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
 
-                            <!-- EACH DISCOUNT AMOUNT (Auto) -->
-                            <div>
-                                <label for="each-discount" class="block text-sm font-medium text-gray-700">Each Discount Amount</label>
-                                <input type="text" id="each-discount" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100" readonly>
-                            </div>
+                        <!-- Each Discount Amount -->
+                        <div>
+                            <label for="each-discount" class="block text-sm font-medium text-gray-700">EACH DISCOUNT AMOUNT</label>
+                            <input type="number" id="each-discount" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
 
-                            <!-- COMMISSION AMOUNT -->
-                            <div>
-                                <label for="commission" class="block text-sm font-medium text-gray-700">Commission Amount</label>
-                                <input type="number" id="commission" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
+                        <!-- Commission Amount -->
+                        <div>
+                            <label for="commission" class="block text-sm font-medium text-gray-700">COMMISSION AMOUNT</label>
+                            <input type="number" id="commission" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
 
-                            <!-- AFTER DISCOUNT (Auto) -->
-                            <div>
-                                <label for="after-discount" class="block text-sm font-medium text-gray-700">After Discount</label>
-                                <input type="text" id="after-discount" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100" readonly>
-                            </div>
-                            
-                            <!-- SHIPMENT DATE -->
-                            <div>
-                                <label for="shipment-date" class="block text-sm font-medium text-gray-700">Shipment Date</label>
-                                <input type="date" id="shipment-date" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <span id="date-day" class="text-sm text-gray-500 ml-2"></span>
-                            </div>
+                        <!-- AFTER DISCOUNT (Read-only) -->
+                        <div>
+                            <label for="after-discount" class="block text-sm font-medium text-gray-700">AFTER DISCOUNT</label>
+                            <input type="number" id="after-discount" readonly class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
+                        </div>
 
-                            <!-- VENDOR NAME -->
-                            <div>
-                                <label for="vendor-name" class="block text-sm font-medium text-gray-700">Vendor Name</label>
-                                <div class="flex">
-                                    <select id="vendor-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="">Select Vendor</option>
-                                    </select>
-                                    <button type="button" id="add-vendor-btn" class="mt-1 px-3 py-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600">+</button>
-                                </div>
-                            </div>
-                            
-                            <!-- TOTAL (Auto) -->
-                            <div class="col-span-1 md:col-span-2 lg:col-span-4">
-                                <label for="total" class="block text-sm font-medium text-gray-700">Total</label>
-                                <input type="text" id="total" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100" readonly>
-                            </div>
+                        <!-- TOTAL (Read-only) -->
+                        <div>
+                            <label for="total" class="block text-sm font-medium text-gray-700">TOTAL</label>
+                            <input type="number" id="total" readonly class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
                         </div>
 
                         <!-- Add List Button -->
-                        <div class="text-right">
-                            <button type="button" id="add-to-list-btn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold">
-                                Add List
+                        <div class="col-span-1 md:col-span-2 lg:col-span-3">
+                            <button type="button" id="add-to-list-btn" class="w-full bg-green-600 text-white py-2 px-4 rounded-md shadow-lg hover:bg-green-700 transition duration-300 font-semibold mt-4">
+                                Add to List
                             </button>
                         </div>
                     </form>
+                </div>
 
-                    <!-- Shipment List Table -->
-                    <div class="mt-10">
-                        <h3 class="text-2xl font-bold mb-4">Shipment List</h3>
-                        <div class="overflow-x-auto">
-                            <table id="shipment-list-table" class="min-w-full bg-white border border-gray-300">
-                                <thead class="bg-gray-800 text-white">
-                                    <tr>
-                                        <th class="py-2 px-3 text-left text-xs">Product Code</th>
-                                        <th class="py-2 px-3 text-left text-xs">Brand</th>
-                                        <th class="py-2 px-3 text-left text-xs">Qty</th>
-                                        <th class="py-2 px-3 text-left text-xs">PKR</th>
-                                        <th class="py-2 px-3 text-left text-xs">After Disc.</th>
-                                        <th class="py-2 px-3 text-left text-xs">Total</th>
-                                        <th class="py-2 px-3 text-left text-xs">Date</th>
-                                        <th class="py-2 px-3 text-left text-xs">Vendor</th>
-                                        <th class="py-2 px-3 text-left text-xs">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="shipment-list-body"></tbody>
-                            </table>
+                <!-- Added List Table -->
+                <div class="bg-white p-6 rounded-lg shadow-lg mt-6">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">Shipment List</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">After Disc.</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="temp-list-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Items will be added here by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button id="save-shipment-btn" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md shadow-lg hover:bg-blue-700 transition duration-300 font-semibold mt-4 hidden">
+                        Save Shipment
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page: Shipment Details -->
+            <div id="shipment-details-page" class="app-page hidden">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Shipment Details</h2>
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                        <div class="relative w-full sm:w-1/2">
+                            <input type="text" id="search-box" placeholder="Search by PRODUCTS CODE"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button id="search-btn" class="absolute right-0 top-0 h-full px-4 bg-blue-500 text-white rounded-r-md hover:bg-blue-600">Search</button>
                         </div>
-                        <div class="text-right mt-6">
-                            <button id="save-shipment-btn" class="px-8 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-bold text-lg flex items-center justify-center float-right">
-                                Save Shipment
-                            </button>
-                        </div>
+                        <button id="download-details-btn" class="w-full sm:w-auto bg-green-600 text-white py-2 px-4 rounded-md shadow-lg hover:bg-green-700 transition font-semibold">
+                            Download Excel
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr id="details-table-head">
+                                    <!-- Headers will be dynamically generated -->
+                                </tr>
+                            </thead>
+                            <tbody id="details-table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Data will be loaded here by JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Page 2: Shipment Details (Hidden) -->
-            <div id="page-details" class="page-content hidden">
-                <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 border-b pb-4">Shipment Details</h2>
-                    <p>Ekhane Google Sheet theke data ene shob shipment-er details dekhano hobe.</p>
-                    <div class="mt-4">
-                        <p class="text-gray-600">Loading shipment data... (Feature under development)</p>
+            <!-- Page: Pricing -->
+            <div id="pricing-page" class="app-page hidden">
+                 <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Pricing Report</h2>
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                        <div class="w-full sm:w-1/2">
+                            <label for="pricing-date" class="block text-sm font-medium text-gray-700">Select Shipment Date</label>
+                            <input type="date" id="pricing-date" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <button id="load-pricing-btn" class="w-full sm:w-auto bg-blue-500 text-white py-2 px-4 rounded-md shadow-lg hover:bg-blue-600 transition font-semibold">
+                            Load Data
+                        </button>
+                        <button id="download-pricing-btn" class="w-full sm:w-auto bg-green-600 text-white py-2 px-4 rounded-md shadow-lg hover:bg-green-700 transition font-semibold disabled:opacity-50" disabled>
+                            Download Excel
+                        </button>
                     </div>
-                </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr id="pricing-table-head">
+                                    <!-- Pricing headers (SL, CODE, etc.) -->
+                                </tr>
+                            </thead>
+                            <tbody id="pricing-table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Data will be loaded here by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                 </div>
             </div>
-
-            <!-- Page 3: Priceing (Hidden) -->
-            <div id="page-priceing" class="page-content hidden">
-                <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 border-b pb-4">Priceing</h2>
-                    <p>Ekhane apnar pricing details ba calculation-er information thakbe. (Feature under development)</p>
-                </div>
-            </div>
-
         </main>
     </div>
-
-    <!-- Custom Modal -->
-    <div id="custom-modal" class="fixed inset-0 z-[100] hidden">
-        <!-- Backdrop -->
-        <div id="custom-modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50"></div>
-        
-        <!-- Modal Box -->
-        <div class="flex items-center justify-center min-h-screen">
-            <div id="custom-modal-box" class_name="bg-white p-6 rounded-lg shadow-xl w-full max-w-md transform scale-95">
-                <h3 id="custom-modal-title" class="text-2xl font-bold mb-4">Notification</h3>
-                <p id="custom-modal-message" class="text-gray-700 mb-6"></p>
-                <div class="text-right space-x-2">
-                    <button id="custom-modal-confirm-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">OK</button>
-                    <button id="custom-modal-cancel-btn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Cancel</button>
-                </div>
+    
+    <!-- Modal for Edit Shipment -->
+    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden p-4">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold mb-4">Edit Shipment Item</h3>
+            <form id="edit-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Form fields will be dynamically injected here -->
+            </form>
+            <div class="mt-6 flex justify-end space-x-4">
+                 <button id="cancel-edit-btn" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600">Cancel</button>
+                 <button id="update-shipment-btn" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Update</button>
             </div>
         </div>
     </div>
 
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            
-            // --- Global Variables ---
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // === STATE ===
             const GAS_URL = 'https://script.google.com/macros/s/AKfycbyiC20R6jAeDfaLYjiWYEKM1uZpPo4KmV2BQiiNORAtZIy8oNYQsnDr6Ci3_FqVdXZk/exec';
-            let userAccessLevel = 'viewer'; // Default access
-            let shipmentList = []; // Joto item list-e add hobe
-            
-            // --- Modal Elements ---
-            const modal = document.getElementById('custom-modal');
-            const modalBackdrop = document.getElementById('custom-modal-backdrop');
-            const modalBox = document.getElementById('custom-modal-box');
-            const modalTitle = document.getElementById('custom-modal-title');
-            const modalMessage = document.getElementById('custom-modal-message');
-            const modalConfirmBtn = document.getElementById('custom-modal-confirm-btn');
-            const modalCancelBtn = document.getElementById('custom-modal-cancel-btn');
-            let confirmCallback = null;
+            let state = {
+                currentUser: null,
+                brands: [],
+                vendors: [],
+                tempShipmentList: [],
+                allShipments: [],
+                pricingData: [],
+                editingRowId: null,
+            };
 
-            // --- Custom Modal Functions ---
-            function showModal(message, title = 'Notification') {
-                modalTitle.textContent = title;
-                modalMessage.textContent = message;
-                modalConfirmBtn.textContent = 'OK';
-                modalCancelBtn.classList.add('hidden');
-                modal.classList.remove('hidden');
-                modalBackdrop.classList.remove('opacity-0');
-                modalBox.classList.remove('scale-95');
-                confirmCallback = null;
-            }
-
-            function showConfirm(message, callback, title = 'Confirmation') {
-                modalTitle.textContent = title;
-                modalMessage.textContent = message;
-                modalConfirmBtn.textContent = 'OK';
-                modalCancelBtn.classList.remove('hidden');
-                modal.classList.remove('hidden');
-                modalBackdrop.classList.remove('opacity-0');
-                modalBox.classList.remove('scale-95');
-                confirmCallback = callback; // Store the function to call on confirm
-            }
-
-            function hideModal() {
-                modalBackdrop.classList.add('opacity-0');
-                modalBox.classList.add('scale-95');
-                setTimeout(() => modal.classList.add('hidden'), 200);
-            }
-
-            modalConfirmBtn.addEventListener('click', () => {
-                hideModal();
-                if (confirmCallback) {
-                    confirmCallback(true); // User clicked OK
-                }
-            });
-            modalCancelBtn.addEventListener('click', () => {
-                hideModal();
-                if (confirmCallback) {
-                    confirmCallback(false); // User clicked Cancel
-                }
-            });
-            modalBackdrop.addEventListener('click', hideModal);
-
-            // --- Loading State Function ---
-            function showLoading(button, show = true, defaultText = '') {
-                if (show) {
-                    button.disabled = true;
-                    button.innerHTML = `<div class="loader mx-auto"></div>`;
-                } else {
-                    button.disabled = false;
-                    button.innerHTML = defaultText;
-                }
-            }
-
-            // --- Login Logic ---
+            // === DOM ELEMENTS ===
+            const loginPage = document.getElementById('login-page');
+            const appPage = document.getElementById('app');
             const loginForm = document.getElementById('login-form');
-            const loginButton = document.getElementById('login-button');
-            const loginError = document.getElementById('login-error');
-            const mainApp = document.getElementById('main-app');
+            const loader = document.getElementById('loader-overlay');
+            const alertBox = document.getElementById('alert-box');
+            const alertMessage = document.getElementById('alert-message');
+            const navButtons = document.querySelectorAll('.nav-button');
+            const appPages = document.querySelectorAll('.app-page');
+            const logoutButton = document.getElementById('logout-button');
+            const menuItems = document.getElementById('menu-items');
 
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-                
-                showLoading(loginButton, true, 'Login');
-                loginError.classList.add('hidden');
-
-                fetch(`${GAS_URL}?action=checkPassword&username=${username}&password=${password}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        showLoading(loginButton, false, 'Login');
-                        if (data.success) {
-                            userAccessLevel = data.access; // 'admin' or 'viewer'
-                            document.getElementById('login-screen').classList.add('hidden');
-                            mainApp.classList.remove('hidden');
-                            applyPermissions();
-                            loadVendors(); // Load vendors after successful login
-                        } else {
-                            loginError.textContent = data.message;
-                            loginError.classList.remove('hidden');
-                        }
-                    })
-                    .catch(err => {
-                        showLoading(loginButton, false, 'Login');
-                        loginError.textContent = 'Error: Could not connect. Please try again.';
-                        loginError.classList.remove('hidden');
-                    });
-            });
-
-            // --- Permission Logic ---
-            function applyPermissions() {
-                if (userAccessLevel === 'viewer') {
-                    // Viewer access
-                    document.getElementById('menu-add-shipment').classList.add('hidden');
-                    document.getElementById('menu-priceing').classList.add('hidden');
-                    // Hide Add/Save buttons
-                    document.getElementById('add-to-list-btn').classList.add('hidden');
-                    document.getElementById('save-shipment-btn').classList.add('hidden');
-                    document.getElementById('add-vendor-btn').classList.add('hidden');
-                    // Make form read-only
-                    document.querySelectorAll('#shipment-form input, #shipment-form select').forEach(el => el.disabled = true);
-                    
-                    // Show details page by default
-                    showPage('page-details');
-                } else {
-                    // Admin access
-                    showPage('page-add-shipment'); // Default page for admin
-                }
-            }
-
-            // --- Page Navigation Logic ---
-            const menuLinks = document.querySelectorAll('.menu-link');
-            const pages = document.querySelectorAll('.page-content');
-
-            function showPage(targetId) {
-                pages.forEach(page => page.classList.add('hidden'));
-                const targetPage = document.getElementById(targetId);
-                if (targetPage) targetPage.classList.remove('hidden');
-
-                menuLinks.forEach(link => {
-                    if (link.dataset.target === targetId) {
-                        link.classList.add('bg-blue-600', 'text-white');
-                        link.classList.remove('text-gray-300', 'hover:bg-gray-700');
-                    } else {
-                        link.classList.remove('bg-blue-600', 'text-white');
-                        link.classList.add('text-gray-300', 'hover:bg-gray-700');
-                    }
-                });
-            }
-
-            menuLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showPage(e.currentTarget.dataset.target);
-                });
-            });
-
-            // --- Add Shipment Page Logic ---
-            
-            // Form fields
+            // Add Shipment Page
+            const shipmentForm = document.getElementById('shipment-form');
             const productCodeInput = document.getElementById('product-code');
+            const productHistoryDiv = document.getElementById('product-history');
             const brandNameInput = document.getElementById('brand-name');
+            const addBrandBtn = document.getElementById('add-brand-btn');
+            const brandListDatalist = document.getElementById('brand-list');
+            const vendorNameInput = document.getElementById('vendor-name');
+            const addVendorBtn = document.getElementById('add-vendor-btn');
+            const vendorListDatalist = document.getElementById('vendor-list');
+            const shipmentDateInput = document.getElementById('shipment-date');
+            const dateDaySpan = document.getElementById('date-day');
             const quantityInput = document.getElementById('quantity');
             const pkrInput = document.getElementById('pkr');
+            const totalPkrInput = document.getElementById('total-pkr');
             const weightInput = document.getElementById('weight');
             const discountPercentInput = document.getElementById('discount-percent');
-            const commissionInput = document.getElementById('commission');
-            const shipmentDateInput = document.getElementById('shipment-date');
-            const vendorNameSelect = document.getElementById('vendor-name');
-            const totalPkrInput = document.getElementById('total-pkr');
             const eachDiscountInput = document.getElementById('each-discount');
+            const commissionInput = document.getElementById('commission');
             const afterDiscountInput = document.getElementById('after-discount');
             const totalInput = document.getElementById('total');
-            const dateDaySpan = document.getElementById('date-day');
             const addToListBtn = document.getElementById('add-to-list-btn');
+            const tempListBody = document.getElementById('temp-list-body');
             const saveShipmentBtn = document.getElementById('save-shipment-btn');
-            const addBrandBtn = document.getElementById('add-brand-btn');
-            const addVendorBtn = document.getElementById('add-vendor-btn');
 
-            // --- 1. Auto Calculation Logic ---
-            function calculateTotals() {
-                const quantity = parseFloat(quantityInput.value) || 0;
-                const pkr = parseFloat(pkrInput.value) || 0;
-                const discountPercent = parseFloat(discountPercentInput.value) || 0;
-                const commission = parseFloat(commissionInput.value) || 0;
+            // Shipment Details Page
+            const detailsPage = document.getElementById('shipment-details-page');
+            const searchBox = document.getElementById('search-box');
+            const searchBtn = document.getElementById('search-btn');
+            const downloadDetailsBtn = document.getElementById('download-details-btn');
+            const detailsTableHead = document.getElementById('details-table-head');
+            const detailsTableBody = document.getElementById('details-table-body');
+            const editModal = document.getElementById('edit-modal');
+            const editForm = document.getElementById('edit-form');
+            const cancelEditBtn = document.getElementById('cancel-edit-btn');
+            const updateShipmentBtn = document.getElementById('update-shipment-btn');
 
-                const totalPkr = quantity * pkr;
-                totalPkrInput.value = totalPkr.toFixed(2);
-                const eachDiscount = pkr * (discountPercent / 100);
-                eachDiscountInput.value = eachDiscount.toFixed(2);
-                const afterDiscount = (pkr - eachDiscount) + commission;
-                afterDiscountInput.value = afterDiscount.toFixed(2);
-                const total = afterDiscount * quantity;
-                totalInput.value = total.toFixed(2);
+            // Pricing Page
+            const pricingPage = document.getElementById('pricing-page');
+            const pricingDateInput = document.getElementById('pricing-date');
+            const loadPricingBtn = document.getElementById('load-pricing-btn');
+            const downloadPricingBtn = document.getElementById('download-pricing-btn');
+            const pricingTableHead = document.getElementById('pricing-table-head');
+            const pricingTableBody = document.getElementById('pricing-table-body');
+            
+            const shipmentHeaders = ['PRODUCTS CODE', 'BRAND NAME', 'QUANTITY', 'PKR', 'TOTAL PKR', 'WEIGHT', 'DISCOUNT %', 'EACH DISCOUNT AMOUNT', 'COMMISSION AMOUNT', 'AFTER DISCOUNT', 'SHIPMENT DATE', 'VENDOR NAME', 'TOTAL'];
+            const pricingHeaders = ['SL', 'CODE', 'QUANTITY', 'WEIGHT', 'PKR', 'BD', 'BUY', 'SELLING', 'PREVIOSE SELLING', 'ORGINAL RATE', 'BRAND NAME'];
+
+            // === HELPER FUNCTIONS ===
+
+            // Show/Hide Loader
+            function showLoader(show = true) {
+                loader.classList.toggle('hidden', !show);
             }
-            [quantityInput, pkrInput, discountPercentInput, commissionInput].forEach(input => {
-                input.addEventListener('input', calculateTotals);
-            });
 
-            // --- 2. Shipment Date Logic ---
-            const dayNames = ["রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার"];
-
-            function updateDateDay() {
-                if (shipmentDateInput.value) {
-                    const date = new Date(shipmentDateInput.value);
-                    const dayIndex = date.getUTCDay();
-                    dateDaySpan.textContent = dayNames[dayIndex];
+            // Show Alert
+            function showAlert(message, isError = false) {
+                alertMessage.textContent = message;
+                alertBox.classList.remove('hidden', 'bg-green-500', 'bg-red-500', 'text-white');
+                if (isError) {
+                    alertBox.classList.add('bg-red-500', 'text-white');
                 } else {
-                    dateDaySpan.textContent = '';
+                    alertBox.classList.add('bg-green-500', 'text-white');
+                }
+                setTimeout(() => {
+                    alertBox.classList.add('hidden');
+                }, 3000);
+            }
+
+            // API Call Function
+            async function apiCall(action, payload = {}) {
+                showLoader();
+                try {
+                    const response = await fetch(GAS_URL, {
+                        method: 'POST',
+                        redirect: 'follow',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-g', },
+                        body: JSON.stringify({
+                            action,
+                            auth: state.currentUser, // Send auth details with every request
+                            ...payload
+                        })
+                    });
+                    const result = await response.json();
+                    showLoader(false);
+                    if (result.status === 'error') {
+                        showAlert(result.message, true);
+                        return null;
+                    }
+                    return result;
+                } catch (error) {
+                    showLoader(false);
+                    showAlert('Network or API error: ' + error.message, true);
+                    return null;
                 }
             }
-            shipmentDateInput.value = new Date().toISOString().split('T')[0];
-            updateDateDay();
-            shipmentDateInput.addEventListener('input', updateDateDay);
 
-            // --- 3. "Add List" Button Logic ---
-            addToListBtn.addEventListener('click', function() {
+            // Page Navigation
+            function showPage(pageId) {
+                appPages.forEach(page => page.classList.add('hidden'));
+                document.getElementById(pageId).classList.remove('hidden');
+
+                navButtons.forEach(button => {
+                    if (button.dataset.page === pageId) {
+                        button.classList.remove('bg-gray-200', 'text-gray-700');
+                        button.classList.add('bg-blue-500', 'text-white');
+                    } else {
+                        button.classList.add('bg-gray-200', 'text-gray-700');
+                        button.classList.remove('bg-blue-500', 'text-white');
+                    }
+                });
+                
+                // Load data for page if needed
+                if (pageId === 'shipment-details-page') {
+                    loadShipmentDetails();
+                }
+            }
+            
+            // Apply User Permissions
+            function applyPermissions() {
+                if (!state.currentUser || !state.currentUser.access || state.currentUser.access.toLowerCase() !== 'admin') {
+                    // Hide admin-only menu items
+                    menuItems.querySelector('[data-page="add-shipment-page"]').classList.add('hidden');
+                    menuItems.querySelector('[data-page="pricing-page"]').classList.add('hidden');
+                    
+                    // Hide admin-only buttons in UI
+                    addBrandBtn.classList.add('hidden');
+                    addVendorBtn.classList.add('hidden');
+                    addToListBtn.classList.add('hidden');
+                    saveShipmentBtn.classList.add('hidden');
+                    downloadDetailsBtn.classList.add('hidden');
+                    
+                    // Show Shipment Details by default for non-admin
+                    showPage('shipment-details-page');
+                } else {
+                    // Show all elements for admin
+                    menuItems.querySelector('[data-page="add-shipment-page"]').classList.remove('hidden');
+                    menuItems.querySelector('[data-page="pricing-page"]').classList.remove('hidden');
+                    showPage('add-shipment-page');
+                }
+            }
+
+            // === LOGIN / LOGOUT ===
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userName = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                const result = await apiCall('login', { userName, password });
+                
+                if (result && result.status === 'success') {
+                    state.currentUser = { userName: result.userName, access: result.access };
+                    loginPage.classList.add('hidden');
+                    appPage.classList.remove('hidden');
+                    showAlert('Login successful!');
+                    loadInitialData();
+                    applyPermissions();
+                }
+            });
+
+            logoutButton.addEventListener('click', () => {
+                state.currentUser = null;
+                state.tempShipmentList = [];
+                state.allShipments = [];
+                state.brands = [];
+                state.vendors = [];
+                appPage.classList.add('hidden');
+                loginPage.classList.remove('hidden');
+            });
+            
+            // === INITIAL DATA LOAD ===
+            async function loadInitialData() {
+                const result = await apiCall('getInitialData');
+                if (result) {
+                    state.brands = result.brands;
+                    state.vendors = result.vendors;
+                    populateDatalists();
+                }
+            }
+            
+            function populateDatalists() {
+                brandListDatalist.innerHTML = '';
+                state.brands.forEach(brand => {
+                    const option = document.createElement('option');
+                    option.value = brand;
+                    brandListDatalist.appendChild(option);
+                });
+                
+                vendorListDatalist.innerHTML = '';
+                state.vendors.forEach(vendor => {
+                    const option = document.createElement('option');
+                    option.value = vendor;
+                    vendorListDatalist.appendChild(option);
+                });
+            }
+
+            // === PWA Registration ===
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('sw.js')
+                        .then(registration => console.log('ServiceWorker registration successful'))
+                        .catch(err => console.log('ServiceWorker registration failed: ', err));
+                });
+            }
+            
+            // === PAGE NAVIGATION ===
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => showPage(button.dataset.page));
+            });
+
+            // === ADD SHIPMENT PAGE ===
+            
+            // Set current date
+            const today = new Date().toISOString().split('T')[0];
+            shipmentDateInput.value = today;
+            updateDateDay(today);
+
+            shipmentDateInput.addEventListener('change', (e) => updateDateDay(e.target.value));
+
+            function updateDateDay(dateString) {
+                if (!dateString) {
+                    dateDaySpan.textContent = '';
+                    return;
+                }
+                const date = new Date(dateString);
+                // Adding time offset to prevent off-by-one day errors
+                const utcDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+                dateDaySpan.textContent = utcDate.toLocaleDateString('en-US', { weekday: 'long' });
+            }
+
+            // Calculations
+            function updateCalculations() {
+                const qty = parseFloat(quantityInput.value) || 0;
+                const pkr = parseFloat(pkrInput.value) || 0;
+                const eachDiscount = parseFloat(eachDiscountInput.value) || 0;
+                const commission = parseFloat(commissionInput.value) || 0;
+                
+                const totalPkr = qty * pkr;
+                const afterDiscount = pkr - eachDiscount + commission;
+                const total = afterDiscount * qty;
+                
+                totalPkrInput.value = totalPkr.toFixed(2);
+                afterDiscountInput.value = afterDiscount.toFixed(2);
+                totalInput.value = total.toFixed(2);
+            }
+            
+            [quantityInput, pkrInput, eachDiscountInput, commissionInput].forEach(input => {
+                input.addEventListener('input', updateCalculations);
+            });
+
+            // Product Code Check (Debounced)
+            let debounceTimer;
+            productCodeInput.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(async () => {
+                    const code = productCodeInput.value;
+                    if (code.length < 3) {
+                        productHistoryDiv.classList.add('hidden');
+                        return;
+                    }
+                    const result = await apiCall('checkProductCode', { code });
+                    if (result && result.totalQty > 0) {
+                        let historyHtml = `<strong>Previous Entries (${result.totalQty} Total):</strong><br>`;
+                        result.history.forEach(item => {
+                            const date = new Date(item.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', weekday: 'short' });
+                            historyHtml += `<span>${date}: ${item.qty} pcs</span><br>`;
+                        });
+                        productHistoryDiv.innerHTML = historyHtml;
+                        productHistoryDiv.classList.remove('hidden');
+                    } else {
+                        productHistoryDiv.textContent = 'No previous entries found.';
+                        productHistoryDiv.classList.remove('hidden');
+                    }
+                }, 500);
+            });
+
+            // Brand/Vendor Add Buttons
+            brandNameInput.addEventListener('input', () => {
+                const val = brandNameInput.value;
+                addBrandBtn.classList.toggle('hidden', !val || state.brands.includes(val));
+            });
+            
+            vendorNameInput.addEventListener('input', () => {
+                const val = vendorNameInput.value;
+                addVendorBtn.classList.toggle('hidden', !val || state.vendors.includes(val));
+            });
+
+            addBrandBtn.addEventListener('click', async () => {
+                const brandName = brandNameInput.value;
+                const result = await apiCall('addBrand', { brandName });
+                if (result) {
+                    state.brands.push(result.brandName);
+                    populateDatalists();
+                    addBrandBtn.classList.add('hidden');
+                    showAlert(`Brand '${brandName}' added.`);
+                }
+            });
+
+            addVendorBtn.addEventListener('click', async () => {
+                const vendorName = vendorNameInput.value;
+                const result = await apiCall('addVendor', { vendorName });
+                if (result) {
+                    state.vendors.push(result.vendorName);
+                    populateDatalists();
+                    addVendorBtn.classList.add('hidden');
+                    showAlert(`Vendor '${vendorName}' added.`);
+                }
+            });
+
+            // Add to List
+            addToListBtn.addEventListener('click', () => {
                 const item = {
                     productCode: productCodeInput.value,
                     brandName: brandNameInput.value,
                     quantity: parseFloat(quantityInput.value) || 0,
                     pkr: parseFloat(pkrInput.value) || 0,
                     totalPkr: parseFloat(totalPkrInput.value) || 0,
-                    weight: parseFloat(weightInput.value) || '',
+                    weight: parseFloat(weightInput.value) || 0,
                     discountPercent: parseFloat(discountPercentInput.value) || 0,
-                    eachDiscount: parseFloat(eachDiscountInput.value) || 0,
-                    commission: parseFloat(commissionInput.value) || 0,
+                    eachDiscountAmount: parseFloat(eachDiscountInput.value) || 0,
+                    commissionAmount: parseFloat(commissionInput.value) || 0,
                     afterDiscount: parseFloat(afterDiscountInput.value) || 0,
                     shipmentDate: shipmentDateInput.value,
-                    vendorName: vendorNameSelect.value,
+                    vendorName: vendorNameInput.value,
                     total: parseFloat(totalInput.value) || 0,
-                    id: Date.now()
+                    id: Date.now() // Unique ID for temp list
                 };
-
-                if (!item.productCode || item.quantity <= 0 || item.pkr <= 0) {
-                    showModal("Please fill Product Code, Quantity, and PKR.", "Validation Error");
+                
+                // Simple validation
+                if (!item.productCode || !item.brandName || !item.quantity || !item.shipmentDate || !item.vendorName) {
+                    showAlert('Please fill all required fields (Code, Brand, Qty, Date, Vendor).', true);
                     return;
                 }
-
-                shipmentList.push(item);
-                renderShipmentList();
-                clearForm();
-            });
-
-            function renderShipmentList() {
-                const tbody = document.getElementById('shipment-list-body');
-                tbody.innerHTML = '';
-                shipmentList.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-b';
-                    tr.innerHTML = `
-                        <td class="py-2 px-3 text-sm">${item.productCode}</td>
-                        <td class="py-2 px-3 text-sm">${item.brandName}</td>
-                        <td class="py-2 px-3 text-sm">${item.quantity}</td>
-                        <td class="py-2 px-3 text-sm">${item.pkr.toFixed(2)}</td>
-                        <td class="py-2 px-3 text-sm">${item.afterDiscount.toFixed(2)}</td>
-                        <td class="py-2 px-3 text-sm font-bold">${item.total.toFixed(2)}</td>
-                        <td class="py-2 px-3 text-sm">${item.shipmentDate}</td>
-                        <td class="py-2 px-3 text-sm">${item.vendorName}</td>
-                        <td class="py-2 px-3 text-sm">
-                            <button class="text-red-500 hover:text-red-700" data-id="${item.id}">Remove</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-
-            document.getElementById('shipment-list-body').addEventListener('click', function(e) {
-                if (e.target.tagName === 'BUTTON' && e.target.dataset.id) {
-                    const idToRemove = parseInt(e.target.dataset.id);
-                    shipmentList = shipmentList.filter(item => item.id !== idToRemove);
-                    renderShipmentList();
-                }
-            });
-
-            function clearForm() {
-                productCodeInput.value = '';
-                brandNameInput.value = '';
-                quantityInput.value = '';
-                pkrInput.value = '';
-                weightInput.value = '';
-                discountPercentInput.value = '';
-                commissionInput.value = '';
-                calculateTotals(); // Clear calculated fields
-                document.getElementById('product-history-results').innerHTML = '';
-            }
-
-            // --- 4. API Function Logics ---
-
-            // Product Code History Check (API Call)
-            productCodeInput.addEventListener('input', function() {
-                const code = productCodeInput.value.trim();
-                const resultsDiv = document.getElementById('product-history-results');
-                if (code.length > 3) {
-                    resultsDiv.innerHTML = `<p class="text-sm text-gray-500">Checking history...</p>`;
-                    fetch(`${GAS_URL}?action=getProductHistory&code=${code}`)
-                        .then(res => res.json())
-                        .then(data => {
-                           if(data.success && data.history.length > 0) {
-                              let html = '';
-                              data.history.forEach(entry => {
-                                 html += `<p class="text-sm text-green-700">${entry.code} - ${entry.date} - ${entry.quantity}</p>`;
-                              });
-                              html += `<p class="text-sm font-bold">Total: ${data.totalQty}</p>`;
-                              resultsDiv.innerHTML = html;
-                           } else {
-                              resultsDiv.innerHTML = `<p class="text-sm text-gray-500">No previous history found.</p>`;
-                           }
-                        });
-                } else {
-                    resultsDiv.innerHTML = '';
-                }
-            });
-
-            // Brand Name Search (API Call)
-            brandNameInput.addEventListener('input', function() {
-                const query = brandNameInput.value.trim();
-                const suggestionsList = document.getElementById('brand-suggestions-list');
                 
-                if (query.length > 0) {
-                    fetch(`${GAS_URL}?action=searchBrand&query=${query}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                suggestionsList.innerHTML = '';
-                                data.suggestions.forEach(brand => {
-                                    const option = document.createElement('option');
-                                    option.value = brand;
-                                    suggestionsList.appendChild(option);
-                                });
-                                
-                                if (!data.exactMatch) {
-                                    addBrandBtn.classList.remove('hidden');
-                                } else {
-                                    addBrandBtn.classList.add('hidden');
-                                }
-                            }
-                        });
-                } else {
-                    addBrandBtn.classList.add('hidden');
-                    suggestionsList.innerHTML = '';
-                }
-            });
-
-            // Add New Brand (API Call)
-            addBrandBtn.addEventListener('click', function() {
-                const newBrand = brandNameInput.value.trim();
-                if (!newBrand) return;
-
-                showLoading(addBrandBtn, true, 'Add');
-                fetch(GAS_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: 'addBrand', brand: newBrand }),
-                    headers: { 'Content-Type': 'application/json' }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    showLoading(addBrandBtn, false, 'Add');
-                    if(data.success) {
-                        showModal(`Brand '${newBrand}' added successfully!`);
-                        addBrandBtn.classList.add('hidden');
-                        // Optionally add to datalist
-                        const option = document.createElement('option');
-                        option.value = newBrand;
-                        document.getElementById('brand-suggestions-list').appendChild(option);
-                    } else {
-                        showModal(`Error: ${data.message}`, 'Error');
-                    }
-                });
+                state.tempShipmentList.push(item);
+                renderTempList();
+                shipmentForm.reset();
+                shipmentDateInput.value = today; // Reset date to today
+                updateDateDay(today);
+                productHistoryDiv.classList.add('hidden');
             });
             
-            // Load Vendor List (API Call)
-            function loadVendors() {
-                vendorNameSelect.innerHTML = '<option value="">Loading vendors...</option>';
-                fetch(`${GAS_URL}?action=getVendors`)
-                .then(res => res.json())
-                .then(data => {
-                   vendorNameSelect.innerHTML = '<option value="">Select Vendor</option>';
-                   if(data.success) {
-                      data.vendors.forEach(vendor => {
-                         const option = document.createElement('option');
-                         option.value = vendor;
-                         option.textContent = vendor;
-                         vendorNameSelect.appendChild(option);
-                      });
-                   }
+            function renderTempList() {
+                tempListBody.innerHTML = '';
+                if (state.tempShipmentList.length === 0) {
+                    saveShipmentBtn.classList.add('hidden');
+                    return;
+                }
+                
+                state.tempShipmentList.forEach((item, index) => {
+                    const row = `
+                        <tr data-id="${item.id}">
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.productCode}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.brandName}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.quantity}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.afterDiscount.toFixed(2)}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.total.toFixed(2)}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.shipmentDate}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                <button class="remove-item-btn text-red-500 hover:text-red-700" data-id="${item.id}">Remove</button>
+                            </td>
+                        </tr>
+                    `;
+                    tempListBody.innerHTML += row;
                 });
-            }
-            // Note: loadVendors() is called after successful login
-
-            // Add New Vendor (API Call)
-            addVendorBtn.addEventListener('click', function() {
-                const newVendor = prompt("Enter new vendor name:");
-                if (newVendor && newVendor.trim()) {
-                    showModal('Adding vendor...', 'Working');
-                    fetch(GAS_URL, { 
-                        method: 'POST', 
-                        body: JSON.stringify({ action: 'addVendor', vendor: newVendor.trim() }),
-                        headers: { 'Content-Type': 'application/json' }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            showModal(`Vendor '${newVendor}' added successfully!`);
-                            loadVendors(); // Reload the vendor list
-                        } else {
-                            showModal(`Error: ${data.message}`, 'Error');
-                        }
+                
+                // Add event listeners to new remove buttons
+                document.querySelectorAll('.remove-item-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = parseInt(e.target.dataset.id);
+                        state.tempShipmentList = state.tempShipmentList.filter(item => item.id !== id);
+                        renderTempList();
                     });
+                });
+                
+                saveShipmentBtn.classList.remove('hidden');
+            }
+            
+            // Save Shipment
+            saveShipmentBtn.addEventListener('click', async () => {
+                const result = await apiCall('saveShipment', { items: state.tempShipmentList });
+                if (result) {
+                    showAlert(`Successfully saved ${result.saved} items.`);
+                    state.tempShipmentList = [];
+                    renderTempList();
                 }
             });
 
-            // --- 5. "Save Shipment" Button Logic (API Call) ---
-            saveShipmentBtn.addEventListener('click', function() {
-                if (shipmentList.length === 0) {
-                    showModal("List-e kono item add kora nei.", "Error");
+            // === SHIPMENT DETAILS PAGE ===
+            
+            async function loadShipmentDetails() {
+                const result = await apiCall('getShipmentDetails');
+                if (result) {
+                    state.allShipments = result.data;
+                    renderDetailsTable(state.allShipments);
+                }
+            }
+            
+            function renderDetailsTable(data) {
+                if (data.length === 0) {
+                    detailsTableHead.innerHTML = '';
+                    detailsTableBody.innerHTML = '<tr><td colspan="100%" class="text-center p-4">No data found.</td></tr>';
                     return;
                 }
-
-                showConfirm("Are you sure you want to save this shipment to Google Sheets?", (confirmed) => {
-                    if (confirmed) {
-                        showLoading(saveShipmentBtn, true, 'Save Shipment');
-                        fetch(GAS_URL, {
-                           method: 'POST',
-                           body: JSON.stringify({ action: 'saveShipment', data: shipmentList }),
-                           headers: { 'Content-Type': 'application/json' }
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                           showLoading(saveShipmentBtn, false, 'Save Shipment');
-                           if(data.success) {
-                              showModal('Shipment successfully saved!');
-                              shipmentList = [];
-                              renderShipmentList();
-                           } else {
-                              showModal(`Error saving shipment: ${data.message}`, 'Error');
-                           }
-                        })
-                        .catch(err => {
-                            showLoading(saveShipmentBtn, false, 'Save Shipment');
-                            showModal(`Network Error: ${err.message}`, 'Error');
-                        });
-                    }
+                
+                // Create headers
+                const headers = Object.keys(data[0]).filter(h => h !== 'rowId');
+                let headHtml = '';
+                headers.forEach(h => {
+                    headHtml += `<th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${h}</th>`;
                 });
+                if (state.currentUser.access === 'admin') {
+                    headHtml += `<th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>`;
+                }
+                detailsTableHead.innerHTML = `<tr>${headHtml}</tr>`;
+                
+                // Create body
+                let bodyHtml = '';
+                data.forEach(item => {
+                    bodyHtml += `<tr data-row-id="${item.rowId}">`;
+                    headers.forEach(header => {
+                        let value = item[header];
+                        if (header.includes('DATE') && value) {
+                            value = new Date(value).toLocaleDateString('en-CA'); // yyyy-mm-dd
+                        }
+                        bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${value}</td>`;
+                    });
+                    if (state.currentUser.access === 'admin') {
+                        bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">
+                                       <button class="edit-btn text-blue-500 hover:text-blue-700" data-row-id="${item.rowId}">Edit</button>
+                                   </td>`;
+                    }
+                    bodyHtml += `</tr>`;
+                });
+                detailsTableBody.innerHTML = bodyHtml;
+                
+                // Add edit button listeners
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => openEditModal(e.target.dataset.rowId));
+                });
+            }
+
+            searchBtn.addEventListener('click', async () => {
+                const code = searchBox.value;
+                if (!code) {
+                    renderDetailsTable(state.allShipments); // Show all
+                    return;
+                }
+                const result = await apiCall('searchShipments', { code });
+                if (result) {
+                    renderDetailsTable(result.data);
+                }
+            });
+            
+            downloadDetailsBtn.addEventListener('click', () => {
+                const dataToDownload = state.allShipments.map(item => {
+                    delete item.rowId; // Remove rowId for download
+                    return item;
+                });
+                const ws = XLSX.utils.json_to_sheet(dataToDownload);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Shipment Details');
+                XLSX.writeFile(wb, 'Shipment_Details.xlsx');
+            });
+
+            // === EDIT MODAL ===
+            function openEditModal(rowId) {
+                const item = state.allShipments.find(s => s.rowId == rowId);
+                if (!item) return;
+                
+                state.editingRowId = rowId;
+                editForm.innerHTML = ''; // Clear previous form
+                
+                // Map sheet headers to item keys (assuming keys match headers)
+                const itemKeys = {
+                    'PRODUCTS CODE': 'productCode',
+                    'BRAND NAME': 'brandName',
+                    'QUANTITY': 'quantity',
+                    'PKR': 'pkr',
+                    'TOTAL PKR': 'totalPkr',
+                    'WEIGHT': 'weight',
+                    'DISCOUNT %': 'discountPercent',
+                    'EACH DISCOUNT AMOUNT': 'eachDiscountAmount',
+                    'COMMISSION AMOUNT': 'commissionAmount',
+                    'AFTER DISCOUNT': 'afterDiscount',
+                    'SHIPMENT DATE': 'shipmentDate',
+                    'VENDOR NAME': 'vendorName',
+                    'TOTAL': 'total',
+                };
+
+                shipmentHeaders.forEach(header => {
+                    const key = itemKeys[header];
+                    let value = item[header];
+                    let inputType = 'text';
+                    
+                    if (typeof value === 'number') {
+                        inputType = 'number';
+                    }
+                    if (header === 'SHIPMENT DATE' && value) {
+                        inputType = 'date';
+                        value = new Date(value).toLocaleDateString('en-CA'); // yyyy-mm-dd format
+                    }
+                    
+                    editForm.innerHTML += `
+                        <div>
+                            <label for="edit-${key}" class="block text-sm font-medium text-gray-700">${header}</label>
+                            <input type="${inputType}" id="edit-${key}" data-key="${key}" data-header="${header}" value="${value}"
+                                   class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    `;
+                });
+                
+                editModal.classList.remove('hidden');
+            }
+            
+            cancelEditBtn.addEventListener('click', () => {
+                editModal.classList.add('hidden');
+                state.editingRowId = null;
+            });
+            
+            updateShipmentBtn.addEventListener('click', async () => {
+                const updatedItem = {};
+                editForm.querySelectorAll('input').forEach(input => {
+                    const key = input.dataset.key;
+                    const header = input.dataset.header;
+                    let value = input.value;
+                    if (input.type === 'number') value = parseFloat(value) || 0;
+                    if (input.type === 'date') value = new Date(input.value).toISOString(); // Store as ISO string
+                    
+                    updatedItem[key] = value;
+                });
+                
+                const result = await apiCall('updateShipment', { rowId: state.editingRowId, data: updatedItem });
+                
+                if (result) {
+                    showAlert('Shipment updated successfully.');
+                    editModal.classList.add('hidden');
+                    loadShipmentDetails(); // Refresh data
+                }
+            });
+
+            // === PRICING PAGE ===
+            loadPricingBtn.addEventListener('click', async () => {
+                const date = pricingDateInput.value;
+                if (!date) {
+                    showAlert('Please select a date.', true);
+                    return;
+                }
+                
+                const result = await apiCall('getPricingData', { date });
+                
+                if (result && result.data.length > 0) {
+                    state.pricingData = result.data;
+                    renderPricingTable(result.data);
+                    downloadPricingBtn.disabled = false;
+                } else {
+                    state.pricingData = [];
+                    pricingTableHead.innerHTML = '';
+                    pricingTableBody.innerHTML = '<tr><td colspan="100%" class="text-center p-4">No data found for this date.</td></tr>';
+                    downloadPricingBtn.disabled = true;
+                }
+            });
+            
+            function renderPricingTable(data) {
+                // Headers
+                pricingTableHead.innerHTML = `<tr>${pricingHeaders.map(h => `<th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${h}</th>`).join('')}</tr>`;
+                
+                // Body
+                let bodyHtml = '';
+                data.forEach((item, index) => {
+                    bodyHtml += '<tr>';
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${index + 1}</td>`; // SL
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['PRODUCTS CODE']}</td>`; // CODE
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['QUANTITY']}</td>`; // QUANTITY
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['WEIGHT']}</td>`; // WEIGHT
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['AFTER DISCOUNT']}</td>`; // PKR (from AFTER DISCOUNT)
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm"></td>`; // BD (empty)
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm"></td>`; // BUY (empty)
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm"></td>`; // SELLING (empty)
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm"></td>`; // PREVIOSE SELLING (empty)
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['PKR']}</td>`; // ORGINAL RATE (from PKR)
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['BRAND NAME']}</td>`; // BRAND NAME
+                    bodyHtml += '</tr>';
+                });
+                pricingTableBody.innerHTML = bodyHtml;
+            }
+
+            downloadPricingBtn.addEventListener('click', () => {
+                const dataToDownload = state.pricingData.map((item, index) => ({
+                    'SL': index + 1,
+                    'CODE': item['PRODUCTS CODE'],
+                    'QUANTITY': item['QUANTITY'],
+                    'WEIGHT': item['WEIGHT'],
+                    'PKR': item['AFTER DISCOUNT'],
+                    'BD': '',
+                    'BUY': '',
+                    'SELLING': '',
+                    'PREVIOSE SELLING': '',
+                    'ORGINAL RATE': item['PKR'],
+                    'BRAND NAME': item['BRAND NAME']
+                }));
+                
+                const ws = XLSX.utils.json_to_sheet(dataToDownload, { header: pricingHeaders });
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Pricing Report');
+                XLSX.writeFile(wb, `Pricing_Report_${pricingDateInput.value}.xlsx`);
             });
 
         });
     </script>
-
 </body>
 </html>
