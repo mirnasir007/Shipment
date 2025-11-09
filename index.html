@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipment Management App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Simple Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="flex h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class_name="w-64 bg-gray-800 text-white flex flex-col fixed h-full">
+            <div class="p-5 border-b border-gray-700">
+                <h1 class="text-2xl font-bold text-center">Shipment App</h1>
+            </div>
+            <nav class="flex-grow p-4 space-y-2">
+                <!-- Menu Link: Add Shipment -->
+                <a href="#" 
+                   class="menu-link flex items-center px-4 py-3 rounded-lg transition-all duration-200" 
+                   data-target="page-add-shipment">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Add Shipment
+                </a>
+
+                <!-- Menu Link: Shipment Details -->
+                <a href="#" 
+                   class="menu-link flex items-center px-4 py-3 rounded-lg transition-all duration-200" 
+                   data-target="page-details">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h6a1 1 0 100-2H7zm0 4a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                    </svg>
+                    Shipment Details
+                </a>
+
+                <!-- Menu Link: Priceing (Pricing) -->
+                <a href="#" 
+                   class="menu-link flex items-center px-4 py-3 rounded-lg transition-all duration-200" 
+                   data-target="page-priceing">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8.433 7.418c.155-.103.346-.103.501 0l3.13 2.087a.25.25 0 010 .416l-3.13 2.087a.25.25 0 01-.501 0v-4.174z" />
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0 1a9 9 0 100-18 9 9 0 000 18z" clip-rule="evenodd" />
+                    </svg>
+                    Priceing
+                </a>
+            </nav>
+            <div class="p-4 border-t border-gray-700 text-center text-sm text-gray-400">
+                &copy; 2025 Your Company
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow p-8 ml-64 overflow-auto">
+            
+            <!-- Page 1: Add Shipment (Default) -->
+            <div id="page-add-shipment" class="page-content">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-3xl font-bold mb-6 border-b pb-4">Add New Shipment</h2>
+                    <p>Ekhane new shipment add korar form thakbe.</p>
+                    <!-- Apni ekhane form element gulo add korben -->
+                    <form class="mt-4 space-y-4">
+                        <div>
+                            <label for="sender" class="block text-sm font-medium text-gray-700">Sender Name</label>
+                            <input type="text" id="sender" name="sender" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="receiver" class="block text-sm font-medium text-gray-700">Receiver Name</label>
+                            <input type="text" id="receiver" name="receiver" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Shipment</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Page 2: Shipment Details (Hidden) -->
+            <div id="page-details" class="page-content hidden">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-3xl font-bold mb-6 border-b pb-4">Shipment Details</h2>
+                    <p>Ekhane Google Sheet theke data ene shob shipment-er details dekhano hobe.</p>
+                    <!-- Ekhane table ba list akare data show korano hobe -->
+                    <div class="mt-4">
+                        <p class="text-gray-600">Loading shipment data...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 3: Priceing (Hidden) -->
+            <div id="page-priceing" class="page-content hidden">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-3xl font-bold mb-6 border-b pb-4">Priceing</h2>
+                    <p>Ekhane apnar pricing details ba calculation-er information thakbe.</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuLinks = document.querySelectorAll('.menu-link');
+            const pages = document.querySelectorAll('.page-content');
+
+            // Function to switch page and update active link
+            function showPage(targetId) {
+                // Hide all pages
+                pages.forEach(page => {
+                    page.classList.add('hidden');
+                });
+
+                // Show the target page
+                const targetPage = document.getElementById(targetId);
+                if (targetPage) {
+                    targetPage.classList.remove('hidden');
+                }
+
+                // Update active menu item
+                menuLinks.forEach(link => {
+                    if (link.dataset.target === targetId) {
+                        // Active link styles
+                        link.classList.add('bg-blue-600', 'text-white');
+                        link.classList.remove('text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
+                    } else {
+                        // Inactive link styles
+                        link.classList.remove('bg-blue-600', 'text-white');
+                        link.classList.add('text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
+                    }
+                });
+            }
+
+            // Add click listeners to all menu links
+            menuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault(); // Stop the browser from following the link
+                    const targetId = e.currentTarget.dataset.target;
+                    showPage(targetId);
+                });
+            });
+
+            // Show the default page ('Add Shipment') on load
+            showPage('page-add-shipment');
+        });
+    </script>
+
+</body>
+</html>
