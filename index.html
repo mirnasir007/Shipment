@@ -247,6 +247,9 @@
                             Download Excel
                         </button>
                     </div>
+                    <!-- NEW: Div to show search total -->
+                    <div id="search-total" class="text-lg font-semibold text-gray-700 mb-2 hidden"></div>
+                    
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
@@ -489,6 +492,9 @@
                 
                 if (result && result.status === 'success') {
                     state.currentUser = { userName: result.userName, access: result.access };
+                    // *** NEW: Save user to localStorage ***
+                    localStorage.setItem('currentUser', JSON.stringify(state.currentUser)); 
+                    
                     loginPage.classList.add('hidden');
                     appPage.classList.remove('hidden');
                     showAlert('Login successful!');
@@ -499,6 +505,9 @@
 
             logoutButton.addEventListener('click', () => {
                 state.currentUser = null;
+                // *** NEW: Remove user from localStorage ***
+                localStorage.removeItem('currentUser'); 
+                
                 state.tempShipmentList = [];
                 state.allShipments = [];
                 state.brands = [];
@@ -541,6 +550,26 @@
                         .catch(err => console.log('ServiceWorker registration failed: ', err));
                 });
             }
+
+            // *** NEW: Check for saved user on page load ***
+            (function checkSavedLogin() {
+                const savedUser = localStorage.getItem('currentUser');
+                if (savedUser) {
+                    try {
+                        state.currentUser = JSON.parse(savedUser);
+                        if (state.currentUser && state.currentUser.userName) {
+                            loginPage.classList.add('hidden');
+                            appPage.classList.remove('hidden');
+                            loadInitialData();
+                            applyPermissions();
+                            showAlert(`Welcome back, ${state.currentUser.userName}!`);
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse saved user', e);
+                        localStorage.removeItem('currentUser');
+                    }
+                }
+            })();
             
             // === PAGE NAVIGATION ===
             navButtons.forEach(button => {
@@ -648,16 +677,20 @@
                 }
             });
 
-            addVendorBtn.addEventListener('click', async () => {
-                const vendorName = vendorNameInput.value;
-                const result = await apiCall('addVendor', { vendorName });
-                if (result) {
-                    state.vendors.push(result.vendorName);
-                    populateDatalists();
-                    addVendorBtn.classList.add('hidden');
-                    showAlert(`Vendor '${vendorName}' added.`);
-                }
-            });
+            // *** NEW: Function to reset only specific fields ***
+            function resetAddShipmentForm() {
+                productCodeInput.value = '';
+                quantityInput.value = '';
+                pkrInput.value = '';
+                totalPkrInput.value = '';
+                weightInput.value = '';
+                discountPercentInput.value = '';
+                eachDiscountInput.value = '';
+                commissionInput.value = '';
+                afterDiscountInput.value = '';
+                totalInput.value = '';
+                productHistoryDiv.classList.add('hidden');
+            }
 
             // Add to List
             addToListBtn.addEventListener('click', () => {
@@ -667,7 +700,8 @@
                     quantity: parseFloat(quantityInput.value) || 0,
                     pkr: parseFloat(pkrInput.value) || 0,
                     totalPkr: parseFloat(totalPkrInput.value) || 0,
-                    weight: parseFloat(weightInput.value) || 0,
+                    // *** UPDATED: Convert weight from g to kg ***
+                    weight: (parseFloat(weightInput.value) || 0) / 1000, 
                     discountPercent: parseFloat(discountPercentInput.value) || 0,
                     eachDiscountAmount: parseFloat(eachDiscountInput.value) || 0,
                     commissionAmount: parseFloat(commissionInput.value) || 0,
@@ -686,10 +720,15 @@
                 
                 state.tempShipmentList.push(item);
                 renderTempList();
-                shipmentForm.reset();
-                shipmentDateInput.value = today; // Reset date to today
-                updateDateDay(today);
-                productHistoryDiv.classList.add('hidden');
+                
+                // *** UPDATED: Call partial reset function ***
+                resetAddShipmentForm(); 
+                
+                // *** REMOVED: These lines are no longer needed, as we want to remember the date ***
+                // shipmentForm.reset(); 
+                // shipmentDateInput.value = today; 
+                // updateDateDay(today);
+                // productHistoryDiv.classList.add('hidden');
             });
             
             function renderTempList() {
@@ -707,7 +746,8 @@
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.quantity}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.pkr.toFixed(0)}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.totalPkr.toFixed(0)}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.weight}</td>
+                            <!-- *** UPDATED: Show weight as decimal *** -->
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.weight.toFixed(3)}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.discountPercent}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.eachDiscountAmount.toFixed(0)}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.commissionAmount.toFixed(0)}</td>
@@ -782,9 +822,13 @@
                         if (header.includes('DATE') && value) {
                             value = new Date(value).toLocaleDateString('en-CA'); // yyyy-mm-dd
                         }
+                        // *** NEW: Format weight in details table ***
+                        if (header === 'WEIGHT' && value) {
+                            value = (parseFloat(value) || 0).toFixed(3);
+                        }
                         bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${value}</td>`;
                     });
-                    if (state.currentUser.access === 'admin') {
+                    if (state.currentUser.access.toLowerCase() === 'admin') {
                         bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">
                                        <button class="edit-btn text-blue-500 hover:text-blue-700" data-row-id="${item.rowId}">Edit</button>
                                    </td>`;
@@ -799,8 +843,12 @@
                 });
             }
 
+            // Search button
+            const searchTotalDiv = document.getElementById('search-total'); // Get the new div
             searchBtn.addEventListener('click', async () => {
                 const code = searchBox.value;
+                searchTotalDiv.classList.add('hidden'); // Hide on new search
+                
                 if (!code) {
                     renderDetailsTable(state.allShipments); // Show all
                     return;
@@ -808,6 +856,13 @@
                 const result = await apiCall('searchShipments', { code });
                 if (result) {
                     renderDetailsTable(result.data);
+                    
+                    // *** NEW: Calculate and show total quantity ***
+                    if (result.data.length > 0) {
+                        const totalQty = result.data.reduce((sum, item) => sum + (parseFloat(item['QUANTITY']) || 0), 0);
+                        searchTotalDiv.textContent = `Product Code: ${code} - Total Quantity: ${totalQty}`;
+                        searchTotalDiv.classList.remove('hidden');
+                    }
                 }
             });
             
@@ -830,7 +885,7 @@
                 state.editingRowId = rowId;
                 editForm.innerHTML = ''; // Clear previous form
                 
-                // Map sheet headers to item keys (assuming keys match headers)
+                // Map sheet headers to item keys
                 const itemKeys = {
                     'PRODUCTS CODE': 'productCode',
                     'BRAND NAME': 'brandName',
@@ -851,6 +906,17 @@
                     const key = itemKeys[header];
                     let value = item[header];
                     let inputType = 'text';
+                    let isReadOnly = false;
+                    let listName = '';
+                    
+                    // *** NEW: Check for readonly fields ***
+                    if (['TOTAL PKR', 'EACH DISCOUNT AMOUNT', 'AFTER DISCOUNT', 'TOTAL'].includes(header)) {
+                        isReadOnly = true;
+                    }
+
+                    // *** NEW: Check for datalist fields ***
+                    if (header === 'BRAND NAME') listName = 'brand-list';
+                    if (header === 'VENDOR NAME') listName = 'vendor-list';
                     
                     if (typeof value === 'number') {
                         inputType = 'number';
@@ -859,16 +925,65 @@
                         inputType = 'date';
                         value = new Date(value).toLocaleDateString('en-CA'); // yyyy-mm-dd format
                     }
+                    // *** NEW: Convert weight back to grams for editing ***
+                    if (header === 'WEIGHT' && value) {
+                        value = (parseFloat(value) || 0) * 1000;
+                    }
                     
                     editForm.innerHTML += `
                         <div>
                             <label for="edit-${key}" class="block text-sm font-medium text-gray-700">${header}</label>
                             <input type="${inputType}" id="edit-${key}" data-key="${key}" data-header="${header}" value="${value}"
-                                   class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                   ${listName ? `list="${listName}"` : ''}
+                                   ${isReadOnly ? 'readonly' : ''}
+                                   class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isReadOnly ? 'bg-gray-100' : ''}">
                         </div>
                     `;
                 });
                 
+                // *** NEW: Add calculation logic to edit modal inputs ***
+                const editQty = document.getElementById('edit-quantity');
+                const editPkr = document.getElementById('edit-pkr');
+                const editTotalPkr = document.getElementById('edit-totalPkr');
+                const editDiscountPercent = document.getElementById('edit-discountPercent');
+                const editEachDiscount = document.getElementById('edit-eachDiscountAmount');
+                // *** FIXED: Corrected the ID from 'edit-commission' to 'edit-commissionAmount' ***
+                const editCommission = document.getElementById('edit-commissionAmount'); 
+                const editAfterDiscount = document.getElementById('edit-afterDiscount');
+                const editTotal = document.getElementById('edit-total');
+
+                function calculateEditEachDiscount() {
+                    const pkr = parseFloat(editPkr.value) || 0;
+                    const discountPercent = parseFloat(editDiscountPercent.value) || 0;
+                    const eachDiscount = pkr * (discountPercent / 100);
+                    editEachDiscount.value = eachDiscount.toFixed(0);
+                    updateEditCalculations(); // Trigger main calculation
+                }
+
+                function updateEditCalculations() {
+                    const qty = parseFloat(editQty.value) || 0;
+                    const pkr = parseFloat(editPkr.value) || 0;
+                    const eachDiscount = parseFloat(editEachDiscount.value) || 0;
+                    const commission = parseFloat(editCommission.value) || 0;
+                    
+                    const totalPkr = qty * pkr;
+                    const afterDiscount = pkr - eachDiscount + commission;
+                    const total = afterDiscount * qty;
+                    
+                    editTotalPkr.value = totalPkr.toFixed(0);
+                    editAfterDiscount.value = afterDiscount.toFixed(0);
+                    editTotal.value = total.toFixed(0);
+                }
+
+                // Attach listeners
+                [editQty, editPkr, editCommission].forEach(input => {
+                    if(input) input.addEventListener('input', updateEditCalculations);
+                });
+                
+                [editPkr, editDiscountPercent].forEach(input => {
+                    if(input) input.addEventListener('input', calculateEditEachDiscount);
+                });
+
                 editModal.classList.remove('hidden');
             }
             
@@ -886,6 +1001,11 @@
                     if (input.type === 'number') value = parseFloat(value) || 0;
                     if (input.type === 'date') value = new Date(input.value).toISOString(); // Store as ISO string
                     
+                    // *** NEW: Convert weight back to kg on update ***
+                    if (header === 'WEIGHT') {
+                        value = (parseFloat(input.value) || 0) / 1000;
+                    }
+
                     updatedItem[key] = value;
                 });
                 
@@ -931,7 +1051,8 @@
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${index + 1}</td>`; // SL
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['PRODUCTS CODE']}</td>`; // CODE
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['QUANTITY']}</td>`; // QUANTITY
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['WEIGHT']}</td>`; // WEIGHT
+                    // *** UPDATED: Format weight in pricing table ***
+                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${(parseFloat(item['WEIGHT']) || 0).toFixed(3)}</td>`; // WEIGHT
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['AFTER DISCOUNT']}</td>`; // PKR (from AFTER DISCOUNT)
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm"></td>`; // BD (empty)
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm"></td>`; // BUY (empty)
