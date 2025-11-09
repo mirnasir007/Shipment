@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-g">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shipment Management</title>
     <!-- Tailwind CSS -->
@@ -390,6 +390,15 @@
 
             // === HELPER FUNCTIONS ===
 
+            // *** NEW: Helper to format date with weekday ***
+            function formatDateWithDay(dateString) {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                // Options for a readable format with weekday
+                const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            }
+
             // Show/Hide Loader
             function showLoader(show = true) {
                 loader.classList.toggle('hidden', !show);
@@ -416,7 +425,7 @@
                     const response = await fetch(GAS_URL, {
                         method: 'POST',
                         redirect: 'follow',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-g', },
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8', }, // Corrected charset
                         body: JSON.stringify({
                             action,
                             auth: state.currentUser, // Send auth details with every request
@@ -819,8 +828,9 @@
                     bodyHtml += `<tr data-row-id="${item.rowId}">`;
                     headers.forEach(header => {
                         let value = item[header];
-                        if (header.includes('DATE') && value) {
-                            value = new Date(value).toLocaleDateString('en-CA'); // yyyy-mm-dd
+                        // *** UPDATED: Format date with weekday ***
+                        if (header === 'SHIPMENT DATE' && value) {
+                            value = formatDateWithDay(value); // Use new helper
                         }
                         // *** NEW: Format weight in details table ***
                         if (header === 'WEIGHT' && value) {
@@ -865,12 +875,26 @@
                     }
                 }
             });
+
+            // *** NEW: Add listener for Enter key on search box ***
+            searchBox.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchBtn.click(); // Programmatically click the search button
+                }
+            });
             
             downloadDetailsBtn.addEventListener('click', () => {
+                // *** UPDATED: Format date for Excel download ***
                 const dataToDownload = state.allShipments.map(item => {
-                    delete item.rowId; // Remove rowId for download
-                    return item;
+                    const formattedItem = { ...item }; // Create a copy
+                    // Format the date specifically for the download
+                    if (formattedItem['SHIPMENT DATE']) {
+                        formattedItem['SHIPMENT DATE'] = formatDateWithDay(formattedItem['SHIPMENT DATE']);
+                    }
+                    delete formattedItem.rowId; // Remove rowId for download
+                    return formattedItem;
                 });
+
                 const ws = XLSX.utils.json_to_sheet(dataToDownload);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Shipment Details');
