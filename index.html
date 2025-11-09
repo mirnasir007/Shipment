@@ -169,7 +169,7 @@
                         <!-- Each Discount Amount -->
                         <div>
                             <label for="each-discount" class="block text-sm font-medium text-gray-700">EACH DISCOUNT AMOUNT</label>
-                            <input type="number" id="each-discount" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="number" id="each-discount" readonly class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
                         </div>
 
                         <!-- Commission Amount -->
@@ -206,12 +206,19 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">After Disc.</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PRODUCTS CODE</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BRAND NAME</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QUANTITY</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PKR</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TOTAL PKR</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">WEIGHT</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DISCOUNT %</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EACH DISCOUNT AMOUNT</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">COMMISSION AMOUNT</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AFTER DISCOUNT</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SHIPMENT DATE</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">VENDOR NAME</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TOTAL</th>
                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                                 </tr>
                             </thead>
@@ -571,20 +578,33 @@
                 const afterDiscount = pkr - eachDiscount + commission;
                 const total = afterDiscount * qty;
                 
-                totalPkrInput.value = totalPkr.toFixed(2);
-                afterDiscountInput.value = afterDiscount.toFixed(2);
-                totalInput.value = total.toFixed(2);
+                totalPkrInput.value = totalPkr.toFixed(0);
+                afterDiscountInput.value = afterDiscount.toFixed(0);
+                totalInput.value = total.toFixed(0);
+            }
+
+            function calculateEachDiscount() {
+                const pkr = parseFloat(pkrInput.value) || 0;
+                const discountPercent = parseFloat(discountPercentInput.value) || 0;
+                const eachDiscount = pkr * (discountPercent / 100);
+                eachDiscountInput.value = eachDiscount.toFixed(0);
+                // Trigger other calculations that depend on this
+                updateCalculations();
             }
             
-            [quantityInput, pkrInput, eachDiscountInput, commissionInput].forEach(input => {
+            [quantityInput, pkrInput, commissionInput].forEach(input => {
                 input.addEventListener('input', updateCalculations);
+            });
+            
+            [pkrInput, discountPercentInput].forEach(input => {
+                input.addEventListener('input', calculateEachDiscount);
             });
 
             // Product Code Check (Debounced)
             let debounceTimer;
-            productCodeInput.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(async () => {
+            productCodeInput.addEventListener('change', async () => { // Changed from 'input' to 'change'
+                // clearTimeout(debounceTimer);
+                // debounceTimer = setTimeout(async () => {
                     const code = productCodeInput.value;
                     if (code.length < 3) {
                         productHistoryDiv.classList.add('hidden');
@@ -594,7 +614,7 @@
                     if (result && result.totalQty > 0) {
                         let historyHtml = `<strong>Previous Entries (${result.totalQty} Total):</strong><br>`;
                         result.history.forEach(item => {
-                            const date = new Date(item.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', weekday: 'short' });
+                            const date = new Date(item.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', weekday: 'long' }); // Changed 'short' to 'long'
                             historyHtml += `<span>${date}: ${item.qty} pcs</span><br>`;
                         });
                         productHistoryDiv.innerHTML = historyHtml;
@@ -603,7 +623,7 @@
                         productHistoryDiv.textContent = 'No previous entries found.';
                         productHistoryDiv.classList.remove('hidden');
                     }
-                }, 500);
+                // }, 500);
             });
 
             // Brand/Vendor Add Buttons
@@ -685,9 +705,16 @@
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.productCode}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.brandName}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.quantity}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.afterDiscount.toFixed(2)}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.total.toFixed(2)}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.pkr.toFixed(0)}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.totalPkr.toFixed(0)}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.weight}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.discountPercent}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.eachDiscountAmount.toFixed(0)}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.commissionAmount.toFixed(0)}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.afterDiscount.toFixed(0)}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.shipmentDate}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.vendorName}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.total.toFixed(0)}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">
                                 <button class="remove-item-btn text-red-500 hover:text-red-700" data-id="${item.id}">Remove</button>
                             </td>
