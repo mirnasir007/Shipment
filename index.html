@@ -83,7 +83,7 @@
         <header class="bg-white shadow-md sticky top-0 z-10">
             <!-- UPDATED: Removed max-w-7xl and mx-auto for 100% width -->
             <nav class="px-4 py-3 flex flex-wrap justify-between items-center">
-                <div class="text-2xl font-bold text-blue-600">Shipment App</div>
+                <div class="text-2xl font-bold text-blue-600">PFF Shipment</div>
                 <div class="flex items-center space-x-2">
                     <div id="menu-items" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                         <button data-page="add-shipment-page" class="nav-button bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Add Shipment</button>
@@ -952,33 +952,40 @@
                 });
             }
 
-            // *** UPDATED: Search on 'Enter' key press ***
-            searchBox.addEventListener('keyup', async (e) => {
-                if (e.key === 'Enter') {
-                    const code = searchBox.value;
-                    searchTotalDiv.classList.add('hidden'); // Hide on new search
-                    
-                    if (!code) {
-                        state.currentShipmentDetails = state.allShipments; // Reset to full list
-                        renderDetailsTable(state.currentShipmentDetails);
-                        return;
-                    }
-                    
-                    const result = await apiCall('searchShipments', { code });
-                    
-                    if (result) {
-                        state.currentShipmentDetails = result.data; // Store filtered data
-                        renderDetailsTable(state.currentShipmentDetails);
-                        
-                        if (result.data.length > 0) {
-                            const totalQty = result.data.reduce((sum, item) => sum + (parseFloat(item['QUANTITY']) || 0), 0);
-                            searchTotalDiv.textContent = `Product Code: ${code} - Total Quantity: ${totalQty}`;
-                            searchTotalDiv.classList.remove('hidden');
-                        }
+            // *** UPDATED: Real-time, partial search on the 'input' event ***
+            searchBox.addEventListener('input', () => {
+                const searchTerm = searchBox.value.toLowerCase();
+                
+                if (!searchTerm) {
+                    // If search is empty, show all shipments
+                    state.currentShipmentDetails = state.allShipments;
+                    searchTotalDiv.classList.add('hidden'); // Hide total
+                } else {
+                    // Filter the *already loaded* allShipments array
+                    state.currentShipmentDetails = state.allShipments.filter(item => {
+                        // Ensure 'PRODUCTS CODE' exists and is a string before calling toLowerCase
+                        const productCode = (item['PRODUCTS CODE'] || '').toString().toLowerCase();
+                        // Check if product code *includes* the search term
+                        return productCode.includes(searchTerm);
+                    });
+
+                    // Show total for filtered results
+                    if (state.currentShipmentDetails.length > 0) {
+                        const totalQty = state.currentShipmentDetails.reduce((sum, item) => sum + (parseFloat(item['QUANTITY']) || 0), 0);
+                        searchTotalDiv.textContent = `Found ${state.currentShipmentDetails.length} items - Total Quantity: ${totalQty}`;
+                        searchTotalDiv.classList.remove('hidden');
+                    } else {
+                        searchTotalDiv.textContent = 'No items matching search.';
+                        searchTotalDiv.classList.remove('hidden');
                     }
                 }
+                
+                // Re-render the table with the filtered data
+                renderDetailsTable(state.currentShipmentDetails);
             });
             
+            // The old 'searchBox.addEventListener('keyup', ...)' for 'Enter' is now REMOVED.
+
             downloadDetailsBtn.addEventListener('click', () => {
                 // Download only the *currently displayed* data
                 const dataToDownload = state.currentShipmentDetails.map(item => {
