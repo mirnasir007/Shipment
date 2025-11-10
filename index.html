@@ -81,7 +81,7 @@
     <div id="app" class="hidden">
         <!-- Header / Navbar -->
         <header class="bg-white shadow-md sticky top-0 z-10">
-            <!-- UPDATED: Removed container mx-auto for full width -->
+            <!-- UPDATED: Removed max-w-7xl and mx-auto for 100% width -->
             <nav class="px-4 py-3 flex flex-wrap justify-between items-center">
                 <div class="text-2xl font-bold text-blue-600">Shipment App</div>
                 <div class="flex items-center space-x-2">
@@ -96,12 +96,13 @@
         </header>
 
         <!-- Main Content Area -->
-        <!-- UPDATED: Removed container mx-auto for full width -->
-        <main class="p-4 mt-4">
+        <!-- UPDATED: Removed max-w-7xl and mx-auto for 100% width -->
+        <main class="p-2 md:p-4 mt-4">
 
             <!-- Page: Add Shipment -->
             <div id="add-shipment-page" class="app-page">
-                <div class="bg-white p-6 rounded-lg shadow-lg">
+                <!-- UPDATED: Reduced padding (p-6 to p-4) -->
+                <div class="bg-white p-4 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-bold mb-4 text-gray-800">Add New Shipment</h2>
                     <form id="shipment-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         
@@ -206,27 +207,30 @@
                 </div>
 
                 <!-- Added List Table -->
-                <div class="bg-white p-6 rounded-lg shadow-lg mt-6">
+                <!-- UPDATED: Reduced padding (p-6 to p-4) -->
+                <div class="bg-white p-4 rounded-lg shadow-lg mt-6">
                     <h3 class="text-xl font-bold mb-4 text-gray-800">Shipment List</h3>
-                    <!-- UPDATED: Removed overflow-x-auto -->
-                    <div>
-                        <table class="min-w-full divide-y divide-gray-200">
+                    <!-- UPDATED: Added overflow-x-auto, border, and rounded-lg -->
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <!-- UPDATED: Removed min-w-full, changed to w-full -->
+                        <table class="w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PRODUCTS CODE</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BRAND NAME</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QUANTITY</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PKR</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TOTAL PKR</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">WEIGHT (kg)</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DISCOUNT %</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EACH DISCOUNT AMOUNT</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">COMMISSION AMOUNT</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AFTER DISCOUNT</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SHIPMENT DATE</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">VENDOR NAME</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TOTAL</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                    <!-- UPDATED: Removed tracking-wider, added whitespace-normal -->
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">PRODUCTS CODE</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">BRAND NAME</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">QUANTITY</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">PKR</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">TOTAL PKR</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">WEIGHT (kg)</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">DISCOUNT %</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">EACH DISCOUNT AMOUNT</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">COMMISSION AMOUNT</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">AFTER DISCOUNT</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">SHIPMENT DATE</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">VENDOR NAME</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">TOTAL</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="temp-list-body" class="bg-white divide-y divide-gray-200">
@@ -242,7 +246,8 @@
 
             <!-- Page: Shipment Details -->
             <div id="shipment-details-page" class="app-page hidden">
-                <div class="bg-white p-6 rounded-lg shadow-lg">
+                <!-- UPDATED: Reduced padding (p-6 to p-4) -->
+                <div class="bg-white p-4 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-bold mb-4 text-gray-800">Shipment Details</h2>
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                         <div class="relative w-full sm:w-1/2">
@@ -257,10 +262,12 @@
                     <!-- NEW: Div to show search total -->
                     <div id="search-total" class="text-lg font-semibold text-gray-700 mb-2 hidden"></div>
                     
-                    <!-- UPDATED: Removed overflow-x-auto -->
-                    <div>
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                    <!-- UPDATED: Added overflow-x-auto, overflow-y-auto, max-h-[70vh], border, and rounded-lg -->
+                    <div id="details-table-container" class="overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border border-gray-200">
+                        <!-- UPDATED: Removed min-w-full, changed to w-full -->
+                        <table class="w-full divide-y divide-gray-200">
+                            <!-- UPDATED: Added sticky top-0 z-5 for frozen header -->
+                            <thead class="bg-gray-50 sticky top-0 z-5">
                                 <tr id="details-table-head">
                                     <!-- Headers will be dynamically generated -->
                                 </tr>
@@ -275,7 +282,8 @@
 
             <!-- Page: Pricing -->
             <div id="pricing-page" class="app-page hidden">
-                 <div class="bg-white p-6 rounded-lg shadow-lg">
+                 <!-- UPDATED: Reduced padding (p-6 to p-4) -->
+                 <div class="bg-white p-4 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-bold mb-4 text-gray-800">Pricing Report</h2>
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                         <div class="w-full sm:w-1/2">
@@ -291,9 +299,10 @@
                             Download Excel
                         </button>
                     </div>
-                    <!-- UPDATED: Removed overflow-x-auto -->
-                    <div>
-                        <table class="min-w-full divide-y divide-gray-200">
+                    <!-- UPDATED: Added overflow-x-auto, border, and rounded-lg -->
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <!-- UPDATED: Removed min-w-full, changed to w-full -->
+                        <table class="w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr id="pricing-table-head">
                                     <!-- Pricing headers (SL, CODE, etc.) -->
@@ -820,22 +829,23 @@
                 state.tempShipmentList.forEach((item, index) => {
                     // UPDATED: Format date in the table
                     const formattedDate = formatDateSimple(item.shipmentDate);
+                    // FIXED: Removed whitespace-nowrap, added whitespace-normal and break-words
                     const row = `
                         <tr data-id="${item.id}">
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.productCode}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.brandName}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.quantity}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.pkr.toFixed(0)}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.totalPkr.toFixed(0)}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.weight.toFixed(3)}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.discountPercent}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.eachDiscountAmount.toFixed(0)}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.commissionAmount.toFixed(0)}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.afterDiscount.toFixed(0)}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${formattedDate}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.vendorName}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">${item.total.toFixed(0)}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm">
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.productCode}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.brandName}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.quantity.toFixed(0)}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.pkr.toFixed(2)}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.totalPkr.toFixed(2)}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.weight.toFixed(3)}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.discountPercent.toFixed(0)}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.eachDiscountAmount.toFixed(2)}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.commissionAmount.toFixed(2)}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.afterDiscount.toFixed(2)}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${formattedDate}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.vendorName}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.total.toFixed(2)}</td>
+                            <td class="px-2 py-2 whitespace-normal break-words text-sm">
                                 <button class="remove-item-btn text-red-500 hover:text-red-700" data-id="${item.id}">Remove</button>
                             </td>
                         </tr>
@@ -889,12 +899,14 @@
                 const headers = Object.keys(data[0]).filter(h => h !== 'rowId');
                 let headHtml = '';
                 headers.forEach(h => {
-                    headHtml += `<th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${h}</th>`;
+                    // UPDATED: Removed tracking-wider, added whitespace-normal to allow header wrapping
+                    headHtml += `<th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">${h}</th>`;
                 });
                 // Case-insensitive admin check
                 const isAdmin = state.currentUser && state.currentUser.access && state.currentUser.access.toLowerCase() === 'admin';
                 if (isAdmin) {
-                    headHtml += `<th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>`;
+                    // UPDATED: Reduced padding (px-3 to px-2, py-3 to py-2)
+                    headHtml += `<th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">Actions</th>`;
                 }
                 detailsTableHead.innerHTML = `<tr>${headHtml}</tr>`;
                 
@@ -904,17 +916,29 @@
                     bodyHtml += `<tr data-row-id="${item.rowId}">`;
                     headers.forEach(header => {
                         let value = item[header];
-                        // *** UPDATED: Format date with "10 November 2025" format ***
+                        
+                        // *** UPDATED: Apply number formatting ***
+                        const moneyHeaders = ['PKR', 'TOTAL PKR', 'EACH DISCOUNT AMOUNT', 'COMMISSION AMOUNT', 'AFTER DISCOUNT', 'TOTAL'];
+
                         if (header === 'SHIPMENT DATE' && value) {
                             value = formatDateSimple(value);
-                        }
-                        if (header === 'WEIGHT' && value) {
+                        } else if (header === 'WEIGHT' && value) {
                             value = (parseFloat(value) || 0).toFixed(3);
+                        } else if (header === 'QUANTITY' && value) {
+                            value = (parseFloat(value) || 0).toFixed(0);
+                        } else if (header === 'DISCOUNT %' && value) {
+                            value = (parseFloat(value) || 0).toFixed(0);
+                        } else if (moneyHeaders.includes(header) && (value || value === 0)) {
+                            value = (parseFloat(value) || 0).toFixed(2); // <-- FIX for .650000001
                         }
-                        bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${value}</td>`;
+                        // *** END OF UPDATE ***
+
+                        // UPDATED: Removed whitespace-nowrap, added whitespace-normal and break-words
+                        bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${value}</td>`;
                     });
                     if (isAdmin) {
-                        bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">
+                        // UPDATED: Reduced padding (px-3 to px-2, py-2)
+                        bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">
                                        <button class="edit-btn text-blue-500 hover:text-blue-700" data-row-id="${item.rowId}">Edit</button>
                                    </td>`;
                     }
@@ -966,6 +990,18 @@
                     if (newItem['SHIPMENT DATE']) {
                         newItem['SHIPMENT DATE'] = formatDateSimple(newItem['SHIPMENT DATE']);
                     }
+
+                    // *** UPDATED: Format numbers for Excel download ***
+                    const moneyHeaders = ['PKR', 'TOTAL PKR', 'EACH DISCOUNT AMOUNT', 'COMMISSION AMOUNT', 'AFTER DISCOUNT', 'TOTAL'];
+                    if (newItem['WEIGHT']) newItem['WEIGHT'] = (parseFloat(newItem['WEIGHT']) || 0).toFixed(3);
+                    if (newItem['QUANTITY']) newItem['QUANTITY'] = (parseFloat(newItem['QUANTITY']) || 0).toFixed(0);
+                    if (newItem['DISCOUNT %']) newItem['DISCOUNT %'] = (parseFloat(newItem['DISCOUNT %']) || 0).toFixed(0);
+                    moneyHeaders.forEach(header => {
+                        if (newItem[header] || newItem[header] === 0) {
+                            newItem[header] = (parseFloat(newItem[header]) || 0).toFixed(2);
+                        }
+                    });
+
                     return newItem;
                 });
                 
@@ -1014,7 +1050,7 @@
                     if (header === 'BRAND NAME') listName = 'brand-list';
                     if (header === 'VENDOR NAME') listName = 'vendor-list';
                     
-                    if (typeof value === 'number') {
+                    if (typeof value === 'number' || ['QUANTITY', 'PKR', 'WEIGHT', 'DISCOUNT %', 'COMMISSION AMOUNT'].includes(header)) {
                         inputType = 'number';
                     }
                     if (header === 'SHIPMENT DATE' && value) {
@@ -1171,23 +1207,27 @@
             
             function renderPricingTable(data) {
                 // Headers
-                pricingTableHead.innerHTML = `<tr>${pricingHeaders.map(h => `<th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${h}</th>`).join('')}</tr>`;
+                // UPDATED: Removed tracking-wider, added whitespace-normal
+                pricingTableHead.innerHTML = `<tr>${pricingHeaders.map(h => `<th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">${h}</th>`).join('')}</tr>`;
                 
                 // Body
                 let bodyHtml = '';
                 data.forEach((item, index) => {
                     bodyHtml += '<tr>';
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${index + 1}</td>`; // SL
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['PRODUCTS CODE']}</td>`; // CODE
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['QUANTITY']}</td>`; // QUANTITY
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${(parseFloat(item['WEIGHT']) || 0).toFixed(3)}</td>`; // WEIGHT
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['AFTER DISCOUNT']}</td>`; // PKR (from AFTER DISCOUNT)
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm"></td>`; // BD (empty)
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm"></td>`; // BUY (empty)
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm"></td>`; // SELLING (empty)
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm"></td>`; // PREVIOSE SELLING (empty)
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['PKR']}</td>`; // ORGINAL RATE (from PKR)
-                    bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['BRAND NAME']}</td>`; // BRAND NAME
+                    // UPDATED: Reduced padding (px-3 to px-2, py-2)
+                    // *** UPDATED: Apply number formatting ***
+                    // *** UPDATED: Removed whitespace-nowrap, added whitespace-normal and break-words ***
+                    bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${index + 1}</td>`; // SL
+                    bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${item['PRODUCTS CODE']}</td>`; // CODE
+                    bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${(parseFloat(item['QUANTITY']) || 0).toFixed(0)}</td>`; // QUANTITY
+                    bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${(parseFloat(item['WEIGHT']) || 0).toFixed(3)}</td>`; // WEIGHT
+                    bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${(parseFloat(item['AFTER DISCOUNT']) || 0).toFixed(2)}</td>`; // PKR (from AFTER DISCOUNT)
+                    bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm"></td>`; // BD (empty)
+                    bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm"></td>`; // BUY (empty)
+                    bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm"></td>`; // SELLING (empty)
+                    bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm"></td>`; // PREVIOSE SELLING (empty)
+                    bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${(parseFloat(item['PKR']) || 0).toFixed(2)}</td>`; // ORGINAL RATE (from PKR)
+                    bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${item['BRAND NAME']}</td>`; // BRAND NAME
                     bodyHtml += '</tr>';
                 });
                 pricingTableBody.innerHTML = bodyHtml;
@@ -1197,14 +1237,14 @@
                 const dataToDownload = state.pricingData.map((item, index) => ({
                     'SL': index + 1,
                     'CODE': item['PRODUCTS CODE'],
-                    'QUANTITY': item['QUANTITY'],
+                    'QUANTITY': (parseFloat(item['QUANTITY']) || 0).toFixed(0),
                     'WEIGHT': (parseFloat(item['WEIGHT']) || 0).toFixed(3), // Format weight
-                    'PKR': item['AFTER DISCOUNT'],
+                    'PKR': (parseFloat(item['AFTER DISCOUNT']) || 0).toFixed(2),
                     'BD': '',
                     'BUY': '',
                     'SELLING': '',
                     'PREVIOSE SELLING': '',
-                    'ORGINAL RATE': item['PKR'],
+                    'ORGINAL RATE': (parseFloat(item['PKR']) || 0).toFixed(2),
                     'BRAND NAME': item['BRAND NAME']
                 }));
                 
