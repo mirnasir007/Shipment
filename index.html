@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- FIXED: Corrected charset from UTF-g to UTF-8 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shipment Management</title>
@@ -156,8 +157,8 @@
                         
                         <!-- Weight -->
                         <div>
-                            <label for="weight" class="block text-sm font-medium text-gray-700">WEIGHT</label>
-                            <input type="number" id="weight" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <label for="weight" class="block text-sm font-medium text-gray-700">WEIGHT (Grams)</label>
+                            <input type="number" id="weight" placeholder="e.g., 300" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <!-- Discount % -->
@@ -211,7 +212,7 @@
                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QUANTITY</th>
                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PKR</th>
                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TOTAL PKR</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">WEIGHT</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">WEIGHT (kg)</th>
                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DISCOUNT %</th>
                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EACH DISCOUNT AMOUNT</th>
                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">COMMISSION AMOUNT</th>
@@ -241,7 +242,7 @@
                         <div class="relative w-full sm:w-1/2">
                             <input type="text" id="search-box" placeholder="Search by PRODUCTS CODE"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <button id="search-btn" class="absolute right-0 top-0 h-full px-4 bg-blue-500 text-white rounded-r-md hover:bg-blue-600">Search</button>
+                            <!-- UPDATED: Search button removed, will use 'Enter' key -->
                         </div>
                         <button id="download-details-btn" class="w-full sm:w-auto bg-green-600 text-white py-2 px-4 rounded-md shadow-lg hover:bg-green-700 transition font-semibold">
                             Download Excel
@@ -323,7 +324,8 @@
                 brands: [],
                 vendors: [],
                 tempShipmentList: [],
-                allShipments: [],
+                allShipments: [], // Holds the full list for the details page
+                currentShipmentDetails: [], // Holds the currently *displayed* list (filtered or full)
                 pricingData: [],
                 editingRowId: null,
             };
@@ -368,10 +370,11 @@
             // Shipment Details Page
             const detailsPage = document.getElementById('shipment-details-page');
             const searchBox = document.getElementById('search-box');
-            const searchBtn = document.getElementById('search-btn');
+            // const searchBtn = document.getElementById('search-btn'); // No longer needed
             const downloadDetailsBtn = document.getElementById('download-details-btn');
             const detailsTableHead = document.getElementById('details-table-head');
             const detailsTableBody = document.getElementById('details-table-body');
+            const searchTotalDiv = document.getElementById('search-total');
             const editModal = document.getElementById('edit-modal');
             const editForm = document.getElementById('edit-form');
             const cancelEditBtn = document.getElementById('cancel-edit-btn');
@@ -389,15 +392,6 @@
             const pricingHeaders = ['SL', 'CODE', 'QUANTITY', 'WEIGHT', 'PKR', 'BD', 'BUY', 'SELLING', 'PREVIOSE SELLING', 'ORGINAL RATE', 'BRAND NAME'];
 
             // === HELPER FUNCTIONS ===
-
-            // *** NEW: Helper to format date with weekday ***
-            function formatDateWithDay(dateString) {
-                if (!dateString) return '';
-                const date = new Date(dateString);
-                // Options for a readable format with weekday
-                const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
-                return date.toLocaleDateString('en-US', options);
-            }
 
             // Show/Hide Loader
             function showLoader(show = true) {
@@ -425,7 +419,7 @@
                     const response = await fetch(GAS_URL, {
                         method: 'POST',
                         redirect: 'follow',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8', }, // Corrected charset
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8', }, // Use utf-8
                         body: JSON.stringify({
                             action,
                             auth: state.currentUser, // Send auth details with every request
@@ -462,24 +456,27 @@
                 });
                 
                 // Load data for page if needed
-                if (pageId === 'shipment-details-page') {
+                if (pageId === 'shipment-details-page' && state.allShipments.length === 0) {
                     loadShipmentDetails();
                 }
             }
             
             // Apply User Permissions
             function applyPermissions() {
-                if (!state.currentUser || !state.currentUser.access || state.currentUser.access.toLowerCase() !== 'admin') {
+                // Check for admin, case-insensitive
+                const isAdmin = state.currentUser && state.currentUser.access && state.currentUser.access.toLowerCase() === 'admin';
+                
+                if (!isAdmin) {
                     // Hide admin-only menu items
                     menuItems.querySelector('[data-page="add-shipment-page"]').classList.add('hidden');
                     menuItems.querySelector('[data-page="pricing-page"]').classList.add('hidden');
                     
                     // Hide admin-only buttons in UI
-                    addBrandBtn.classList.add('hidden');
-                    addVendorBtn.classList.add('hidden');
-                    addToListBtn.classList.add('hidden');
-                    saveShipmentBtn.classList.add('hidden');
-                    downloadDetailsBtn.classList.add('hidden');
+                    if(addBrandBtn) addBrandBtn.classList.add('hidden');
+                    if(addVendorBtn) addVendorBtn.classList.add('hidden');
+                    if(addToListBtn) addToListBtn.classList.add('hidden');
+                    if(saveShipmentBtn) saveShipmentBtn.classList.add('hidden');
+                    if(downloadDetailsBtn) downloadDetailsBtn.classList.add('hidden');
                     
                     // Show Shipment Details by default for non-admin
                     showPage('shipment-details-page');
@@ -490,6 +487,21 @@
                     showPage('add-shipment-page');
                 }
             }
+            
+            // *** NEW: Helper to format date with day ***
+            function formatDateWithDay(dateString) {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                // Adjust for timezone offset to prevent off-by-one day errors
+                const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+                return localDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+            }
+
 
             // === LOGIN / LOGOUT ===
             loginForm.addEventListener('submit', async (e) => {
@@ -501,7 +513,6 @@
                 
                 if (result && result.status === 'success') {
                     state.currentUser = { userName: result.userName, access: result.access };
-                    // *** NEW: Save user to localStorage ***
                     localStorage.setItem('currentUser', JSON.stringify(state.currentUser)); 
                     
                     loginPage.classList.add('hidden');
@@ -514,15 +525,23 @@
 
             logoutButton.addEventListener('click', () => {
                 state.currentUser = null;
-                // *** NEW: Remove user from localStorage ***
                 localStorage.removeItem('currentUser'); 
                 
                 state.tempShipmentList = [];
                 state.allShipments = [];
+                state.currentShipmentDetails = [];
                 state.brands = [];
                 state.vendors = [];
                 appPage.classList.add('hidden');
                 loginPage.classList.remove('hidden');
+                // Clear datalists
+                brandListDatalist.innerHTML = '';
+                vendorListDatalist.innerHTML = '';
+                // Reset tables
+                detailsTableBody.innerHTML = '';
+                detailsTableHead.innerHTML = '';
+                pricingTableBody.innerHTML = '';
+                pricingTableHead.innerHTML = '';
             });
             
             // === INITIAL DATA LOAD ===
@@ -560,7 +579,7 @@
                 });
             }
 
-            // *** NEW: Check for saved user on page load ***
+            // Check for saved user on page load
             (function checkSavedLogin() {
                 const savedUser = localStorage.getItem('currentUser');
                 if (savedUser) {
@@ -638,41 +657,42 @@
                 input.addEventListener('input', calculateEachDiscount);
             });
 
-            // Product Code Check (Debounced)
-            let debounceTimer;
-            productCodeInput.addEventListener('change', async () => { // Changed from 'input' to 'change'
-                // clearTimeout(debounceTimer);
-                // debounceTimer = setTimeout(async () => {
-                    const code = productCodeInput.value;
-                    if (code.length < 3) {
-                        productHistoryDiv.classList.add('hidden');
-                        return;
-                    }
-                    const result = await apiCall('checkProductCode', { code });
-                    if (result && result.totalQty > 0) {
-                        let historyHtml = `<strong>Previous Entries (${result.totalQty} Total):</strong><br>`;
-                        result.history.forEach(item => {
-                            const date = new Date(item.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', weekday: 'long' }); // Changed 'short' to 'long'
-                            historyHtml += `<span>${date}: ${item.qty} pcs</span><br>`;
-                        });
-                        productHistoryDiv.innerHTML = historyHtml;
-                        productHistoryDiv.classList.remove('hidden');
-                    } else {
-                        productHistoryDiv.textContent = 'No previous entries found.';
-                        productHistoryDiv.classList.remove('hidden');
-                    }
-                // }, 500);
+            // Product Code Check (on change)
+            productCodeInput.addEventListener('change', async () => {
+                const code = productCodeInput.value;
+                if (code.length < 1) { // Changed from 3 to 1
+                    productHistoryDiv.classList.add('hidden');
+                    return;
+                }
+                const result = await apiCall('checkProductCode', { code });
+                if (result && result.totalQty > 0) {
+                    let historyHtml = `<strong>Previous Entries (${result.totalQty} Total):</strong><br>`;
+                    result.history.forEach(item => {
+                        // Use the new date formatter
+                        historyHtml += `<span>${formatDateWithDay(item.date)}: ${item.qty} pcs</span><br>`;
+                    });
+                    productHistoryDiv.innerHTML = historyHtml;
+                    productHistoryDiv.classList.remove('hidden');
+                } else if (result) {
+                    productHistoryDiv.textContent = 'No previous entries found.';
+                    productHistoryDiv.classList.remove('hidden');
+                } else {
+                    // API call failed, hide the div
+                    productHistoryDiv.classList.add('hidden');
+                }
             });
 
             // Brand/Vendor Add Buttons
             brandNameInput.addEventListener('input', () => {
                 const val = brandNameInput.value;
-                addBrandBtn.classList.toggle('hidden', !val || state.brands.includes(val));
+                const isAdmin = state.currentUser && state.currentUser.access && state.currentUser.access.toLowerCase() === 'admin';
+                addBrandBtn.classList.toggle('hidden', !isAdmin || !val || state.brands.includes(val));
             });
             
             vendorNameInput.addEventListener('input', () => {
                 const val = vendorNameInput.value;
-                addVendorBtn.classList.toggle('hidden', !val || state.vendors.includes(val));
+                const isAdmin = state.currentUser && state.currentUser.access && state.currentUser.access.toLowerCase() === 'admin';
+                addVendorBtn.classList.toggle('hidden', !isAdmin || !val || state.vendors.includes(val));
             });
 
             addBrandBtn.addEventListener('click', async () => {
@@ -685,8 +705,20 @@
                     showAlert(`Brand '${brandName}' added.`);
                 }
             });
+            
+            addVendorBtn.addEventListener('click', async () => {
+                const vendorName = vendorNameInput.value;
+                const result = await apiCall('addVendor', { vendorName });
+                if (result) {
+                    state.vendors.push(result.vendorName);
+                    populateDatalists();
+                    addVendorBtn.classList.add('hidden');
+                    showAlert(`Vendor '${vendorName}' added.`);
+                }
+            });
 
-            // *** NEW: Function to reset only specific fields ***
+
+            // Function to reset only specific fields
             function resetAddShipmentForm() {
                 productCodeInput.value = '';
                 quantityInput.value = '';
@@ -709,8 +741,7 @@
                     quantity: parseFloat(quantityInput.value) || 0,
                     pkr: parseFloat(pkrInput.value) || 0,
                     totalPkr: parseFloat(totalPkrInput.value) || 0,
-                    // *** UPDATED: Convert weight from g to kg ***
-                    weight: (parseFloat(weightInput.value) || 0) / 1000, 
+                    weight: (parseFloat(weightInput.value) || 0) / 1000, // Convert g to kg
                     discountPercent: parseFloat(discountPercentInput.value) || 0,
                     eachDiscountAmount: parseFloat(eachDiscountInput.value) || 0,
                     commissionAmount: parseFloat(commissionInput.value) || 0,
@@ -730,14 +761,8 @@
                 state.tempShipmentList.push(item);
                 renderTempList();
                 
-                // *** UPDATED: Call partial reset function ***
+                // Call partial reset function
                 resetAddShipmentForm(); 
-                
-                // *** REMOVED: These lines are no longer needed, as we want to remember the date ***
-                // shipmentForm.reset(); 
-                // shipmentDateInput.value = today; 
-                // updateDateDay(today);
-                // productHistoryDiv.classList.add('hidden');
             });
             
             function renderTempList() {
@@ -755,7 +780,6 @@
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.quantity}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.pkr.toFixed(0)}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.totalPkr.toFixed(0)}</td>
-                            <!-- *** UPDATED: Show weight as decimal *** -->
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.weight.toFixed(3)}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.discountPercent}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-sm">${item.eachDiscountAmount.toFixed(0)}</td>
@@ -791,6 +815,8 @@
                     showAlert(`Successfully saved ${result.saved} items.`);
                     state.tempShipmentList = [];
                     renderTempList();
+                    // Clear the main shipment list cache to force refresh
+                    state.allShipments = []; 
                 }
             });
 
@@ -800,7 +826,8 @@
                 const result = await apiCall('getShipmentDetails');
                 if (result) {
                     state.allShipments = result.data;
-                    renderDetailsTable(state.allShipments);
+                    state.currentShipmentDetails = state.allShipments; // By default, show all
+                    renderDetailsTable(state.currentShipmentDetails);
                 }
             }
             
@@ -817,7 +844,9 @@
                 headers.forEach(h => {
                     headHtml += `<th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${h}</th>`;
                 });
-                if (state.currentUser.access === 'admin') {
+                // Case-insensitive admin check
+                const isAdmin = state.currentUser && state.currentUser.access && state.currentUser.access.toLowerCase() === 'admin';
+                if (isAdmin) {
                     headHtml += `<th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>`;
                 }
                 detailsTableHead.innerHTML = `<tr>${headHtml}</tr>`;
@@ -828,17 +857,16 @@
                     bodyHtml += `<tr data-row-id="${item.rowId}">`;
                     headers.forEach(header => {
                         let value = item[header];
-                        // *** UPDATED: Format date with weekday ***
+                        // *** UPDATED: Format date with day ***
                         if (header === 'SHIPMENT DATE' && value) {
-                            value = formatDateWithDay(value); // Use new helper
+                            value = formatDateWithDay(value);
                         }
-                        // *** NEW: Format weight in details table ***
                         if (header === 'WEIGHT' && value) {
                             value = (parseFloat(value) || 0).toFixed(3);
                         }
                         bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${value}</td>`;
                     });
-                    if (state.currentUser.access.toLowerCase() === 'admin') {
+                    if (isAdmin) {
                         bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">
                                        <button class="edit-btn text-blue-500 hover:text-blue-700" data-row-id="${item.rowId}">Edit</button>
                                    </td>`;
@@ -853,48 +881,47 @@
                 });
             }
 
-            // Search button
-            const searchTotalDiv = document.getElementById('search-total'); // Get the new div
-            searchBtn.addEventListener('click', async () => {
-                const code = searchBox.value;
-                searchTotalDiv.classList.add('hidden'); // Hide on new search
-                
-                if (!code) {
-                    renderDetailsTable(state.allShipments); // Show all
-                    return;
-                }
-                const result = await apiCall('searchShipments', { code });
-                if (result) {
-                    renderDetailsTable(result.data);
-                    
-                    // *** NEW: Calculate and show total quantity ***
-                    if (result.data.length > 0) {
-                        const totalQty = result.data.reduce((sum, item) => sum + (parseFloat(item['QUANTITY']) || 0), 0);
-                        searchTotalDiv.textContent = `Product Code: ${code} - Total Quantity: ${totalQty}`;
-                        searchTotalDiv.classList.remove('hidden');
-                    }
-                }
-            });
-
-            // *** NEW: Add listener for Enter key on search box ***
-            searchBox.addEventListener('keypress', (e) => {
+            // *** UPDATED: Search on 'Enter' key press ***
+            searchBox.addEventListener('keyup', async (e) => {
                 if (e.key === 'Enter') {
-                    searchBtn.click(); // Programmatically click the search button
+                    const code = searchBox.value;
+                    searchTotalDiv.classList.add('hidden'); // Hide on new search
+                    
+                    if (!code) {
+                        state.currentShipmentDetails = state.allShipments; // Reset to full list
+                        renderDetailsTable(state.currentShipmentDetails);
+                        return;
+                    }
+                    
+                    const result = await apiCall('searchShipments', { code });
+                    
+                    if (result) {
+                        state.currentShipmentDetails = result.data; // Store filtered data
+                        renderDetailsTable(state.currentShipmentDetails);
+                        
+                        if (result.data.length > 0) {
+                            const totalQty = result.data.reduce((sum, item) => sum + (parseFloat(item['QUANTITY']) || 0), 0);
+                            searchTotalDiv.textContent = `Product Code: ${code} - Total Quantity: ${totalQty}`;
+                            searchTotalDiv.classList.remove('hidden');
+                        }
+                    }
                 }
             });
             
             downloadDetailsBtn.addEventListener('click', () => {
-                // *** UPDATED: Format date for Excel download ***
-                const dataToDownload = state.allShipments.map(item => {
-                    const formattedItem = { ...item }; // Create a copy
-                    // Format the date specifically for the download
-                    if (formattedItem['SHIPMENT DATE']) {
-                        formattedItem['SHIPMENT DATE'] = formatDateWithDay(formattedItem['SHIPMENT DATE']);
+                // Download only the *currently displayed* data
+                const dataToDownload = state.currentShipmentDetails.map(item => {
+                    // Create a new object to avoid modifying the state
+                    const newItem = {...item};
+                    delete newItem.rowId; // Remove rowId for download
+                    
+                    // *** UPDATED: Format date for Excel download ***
+                    if (newItem['SHIPMENT DATE']) {
+                        newItem['SHIPMENT DATE'] = formatDateWithDay(newItem['SHIPMENT DATE']);
                     }
-                    delete formattedItem.rowId; // Remove rowId for download
-                    return formattedItem;
+                    return newItem;
                 });
-
+                
                 const ws = XLSX.utils.json_to_sheet(dataToDownload);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Shipment Details');
@@ -909,7 +936,6 @@
                 state.editingRowId = rowId;
                 editForm.innerHTML = ''; // Clear previous form
                 
-                // Map sheet headers to item keys
                 const itemKeys = {
                     'PRODUCTS CODE': 'productCode',
                     'BRAND NAME': 'brandName',
@@ -933,12 +959,10 @@
                     let isReadOnly = false;
                     let listName = '';
                     
-                    // *** NEW: Check for readonly fields ***
                     if (['TOTAL PKR', 'EACH DISCOUNT AMOUNT', 'AFTER DISCOUNT', 'TOTAL'].includes(header)) {
                         isReadOnly = true;
                     }
 
-                    // *** NEW: Check for datalist fields ***
                     if (header === 'BRAND NAME') listName = 'brand-list';
                     if (header === 'VENDOR NAME') listName = 'vendor-list';
                     
@@ -949,9 +973,8 @@
                         inputType = 'date';
                         value = new Date(value).toLocaleDateString('en-CA'); // yyyy-mm-dd format
                     }
-                    // *** NEW: Convert weight back to grams for editing ***
                     if (header === 'WEIGHT' && value) {
-                        value = (parseFloat(value) || 0) * 1000;
+                        value = (parseFloat(value) || 0) * 1000; // Convert kg back to g
                     }
                     
                     editForm.innerHTML += `
@@ -965,13 +988,12 @@
                     `;
                 });
                 
-                // *** NEW: Add calculation logic to edit modal inputs ***
+                // Add calculation logic to edit modal inputs
                 const editQty = document.getElementById('edit-quantity');
                 const editPkr = document.getElementById('edit-pkr');
                 const editTotalPkr = document.getElementById('edit-totalPkr');
                 const editDiscountPercent = document.getElementById('edit-discountPercent');
                 const editEachDiscount = document.getElementById('edit-eachDiscountAmount');
-                // *** FIXED: Corrected the ID from 'edit-commission' to 'edit-commissionAmount' ***
                 const editCommission = document.getElementById('edit-commissionAmount'); 
                 const editAfterDiscount = document.getElementById('edit-afterDiscount');
                 const editTotal = document.getElementById('edit-total');
@@ -1025,9 +1047,8 @@
                     if (input.type === 'number') value = parseFloat(value) || 0;
                     if (input.type === 'date') value = new Date(input.value).toISOString(); // Store as ISO string
                     
-                    // *** NEW: Convert weight back to kg on update ***
                     if (header === 'WEIGHT') {
-                        value = (parseFloat(input.value) || 0) / 1000;
+                        value = (parseFloat(input.value) || 0) / 1000; // Convert g to kg
                     }
 
                     updatedItem[key] = value;
@@ -1075,7 +1096,6 @@
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${index + 1}</td>`; // SL
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['PRODUCTS CODE']}</td>`; // CODE
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['QUANTITY']}</td>`; // QUANTITY
-                    // *** UPDATED: Format weight in pricing table ***
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${(parseFloat(item['WEIGHT']) || 0).toFixed(3)}</td>`; // WEIGHT
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm">${item['AFTER DISCOUNT']}</td>`; // PKR (from AFTER DISCOUNT)
                     bodyHtml += `<td class="px-3 py-2 whitespace-nowrap text-sm"></td>`; // BD (empty)
@@ -1094,7 +1114,7 @@
                     'SL': index + 1,
                     'CODE': item['PRODUCTS CODE'],
                     'QUANTITY': item['QUANTITY'],
-                    'WEIGHT': item['WEIGHT'],
+                    'WEIGHT': (parseFloat(item['WEIGHT']) || 0).toFixed(3), // Format weight
                     'PKR': item['AFTER DISCOUNT'],
                     'BD': '',
                     'BUY': '',
