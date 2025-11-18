@@ -239,7 +239,7 @@
                 <div class="bg-white p-4 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-bold mb-4 text-gray-800">Shipment Details</h2>
                     
-                    <!-- UPDATED UI: Added Date and Brand Filters -->
+                    <!-- Filter Options -->
                     <div class="flex flex-col lg:flex-row justify-between items-center mb-4 gap-4">
                         <!-- Filter Container -->
                         <div class="flex flex-col sm:flex-row w-full lg:w-3/4 gap-2">
@@ -391,7 +391,6 @@
             // Shipment Details Page
             const detailsPage = document.getElementById('shipment-details-page');
             const searchBox = document.getElementById('search-box');
-            // NEW ELEMENTS
             const filterDateInput = document.getElementById('filter-date');
             const filterBrandInput = document.getElementById('filter-brand');
             
@@ -954,7 +953,7 @@
                 }
             }
 
-            // === NEW FILTER LOGIC ===
+            // === NEW FILTER LOGIC (FIXED DATE PARSING) ===
             function applyFilters() {
                 const searchTerm = searchBox.value.toLowerCase();
                 const filterDate = filterDateInput.value; // yyyy-mm-dd
@@ -966,12 +965,18 @@
                     const productCode = (item['PRODUCTS CODE'] || '').toString().toLowerCase();
                     const matchesSearch = productCode.includes(searchTerm);
 
-                    // 2. Date Filter
+                    // 2. Date Filter - FIXED TIMEZONE ISSUE
                     let matchesDate = true;
                     if (filterDate && item['SHIPMENT DATE']) {
-                        // item['SHIPMENT DATE'] usually comes as ISO string or Date object from GAS
                         const itemDateObj = new Date(item['SHIPMENT DATE']);
-                        const itemDateStr = itemDateObj.toISOString().split('T')[0]; // Get YYYY-MM-DD
+                        // Use local date components (getFullYear, getMonth, getDate)
+                        // to avoid UTC shift issue.
+                        const year = itemDateObj.getFullYear();
+                        // Month is 0-indexed, so +1. Pad with leading zero.
+                        const month = String(itemDateObj.getMonth() + 1).padStart(2, '0');
+                        const day = String(itemDateObj.getDate()).padStart(2, '0');
+                        const itemDateStr = `${year}-${month}-${day}`;
+                        
                         matchesDate = (itemDateStr === filterDate);
                     }
 
@@ -979,7 +984,7 @@
                     let matchesBrand = true;
                     if (filterBrand) {
                         const itemBrand = (item['BRAND NAME'] || '').toString().toLowerCase();
-                        matchesBrand = itemBrand.includes(filterBrand); // Use includes for ease, or === for strict
+                        matchesBrand = itemBrand.includes(filterBrand); 
                     }
 
                     return matchesSearch && matchesDate && matchesBrand;
