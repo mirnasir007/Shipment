@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- FIXED: Corrected charset from UTF-g to UTF-8 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shipment Management</title>
@@ -82,7 +81,6 @@
     <div id="app" class="hidden">
         <!-- Header / Navbar -->
         <header class="bg-white shadow-md sticky top-0 z-10">
-            <!-- UPDATED: Removed max-w-7xl and mx-auto for 100% width -->
             <nav class="px-4 py-3 flex flex-wrap justify-between items-center">
                 <div class="text-2xl font-bold text-blue-600">PFF Shipment</div>
                 <div class="flex items-center space-x-2">
@@ -97,12 +95,10 @@
         </header>
 
         <!-- Main Content Area -->
-        <!-- UPDATED: Removed max-w-7xl and mx-auto for 100% width -->
         <main class="p-2 md:p-4 mt-4">
 
             <!-- Page: Add Shipment -->
             <div id="add-shipment-page" class="app-page">
-                <!-- UPDATED: Reduced padding (p-6 to p-4) -->
                 <div class="bg-white p-4 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-bold mb-4 text-gray-800">Add New Shipment</h2>
                     <form id="shipment-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -138,7 +134,6 @@
                         <div>
                             <label for="shipment-date" class="block text-sm font-medium text-gray-700">SHIPMENT DATE</label>
                             <input type="date" id="shipment-date" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <!-- UPDATED: This span will show the formatted date -->
                             <span id="date-day" class="text-sm text-gray-500 font-medium"></span>
                         </div>
 
@@ -162,9 +157,7 @@
                         
                         <!-- Weight -->
                         <div>
-                            <!-- UPDATED: Label changed -->
                             <label for="weight" class="block text-sm font-medium text-gray-700">WEIGHT</label>
-                            <!-- UPDATED: Placeholder removed -->
                             <input type="number" id="weight" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
@@ -208,16 +201,12 @@
                 </div>
 
                 <!-- Added List Table -->
-                <!-- UPDATED: Reduced padding (p-6 to p-4) -->
                 <div class="bg-white p-4 rounded-lg shadow-lg mt-6">
                     <h3 class="text-xl font-bold mb-4 text-gray-800">Shipment List</h3>
-                    <!-- UPDATED: Added overflow-x-auto, border, and rounded-lg -->
                     <div class="overflow-x-auto rounded-lg border border-gray-200">
-                        <!-- UPDATED: Removed min-w-full, changed to w-full -->
                         <table class="w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <!-- UPDATED: Removed tracking-wider, added whitespace-normal -->
                                     <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">PRODUCTS CODE</th>
                                     <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">BRAND NAME</th>
                                     <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">QUANTITY</th>
@@ -247,27 +236,26 @@
 
             <!-- Page: Shipment Details -->
             <div id="shipment-details-page" class="app-page hidden">
-                <!-- UPDATED: Reduced padding (p-6 to p-4) -->
                 <div class="bg-white p-4 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-bold mb-4 text-gray-800">Shipment Details</h2>
+                    <!-- UPDATED UI: Added Selected Total Display next to search -->
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-                        <div class="relative w-full sm:w-1/2">
+                        <div class="relative w-full sm:w-1/2 flex items-center gap-2">
                             <input type="text" id="search-box" placeholder="Search by PRODUCTS CODE"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <!-- UPDATED: Search button removed, will use 'Enter' key -->
+                        </div>
+                         <!-- NEW: Selected Total Display -->
+                        <div id="selected-sum-display" class="text-lg font-bold text-blue-600 w-full sm:w-auto text-center sm:text-right whitespace-nowrap hidden">
+                             Selected Total: 0
                         </div>
                         <button id="download-details-btn" class="w-full sm:w-auto bg-green-600 text-white py-2 px-4 rounded-md shadow-lg hover:bg-green-700 transition font-semibold">
                             Download Excel
                         </button>
                     </div>
-                    <!-- NEW: Div to show search total -->
                     <div id="search-total" class="text-lg font-semibold text-gray-700 mb-2 hidden"></div>
                     
-                    <!-- UPDATED: Added overflow-x-auto, overflow-y-auto, max-h-[70vh], border, and rounded-lg -->
                     <div id="details-table-container" class="overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border border-gray-200">
-                        <!-- UPDATED: Removed min-w-full, changed to w-full -->
                         <table class="w-full divide-y divide-gray-200">
-                            <!-- UPDATED: Added sticky top-0 z-5 for frozen header -->
                             <thead class="bg-gray-50 sticky top-0 z-5">
                                 <tr id="details-table-head">
                                     <!-- Headers will be dynamically generated -->
@@ -283,14 +271,12 @@
 
             <!-- Page: Pricing -->
             <div id="pricing-page" class="app-page hidden">
-                 <!-- UPDATED: Reduced padding (p-6 to p-4) -->
                  <div class="bg-white p-4 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-bold mb-4 text-gray-800">Pricing Report</h2>
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                         <div class="w-full sm:w-1/2">
                             <label for="pricing-date" class="block text-sm font-medium text-gray-700">Select Shipment Date</label>
                             <input type="date" id="pricing-date" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <!-- NEW: Span to show formatted pricing date -->
                             <span id="pricing-date-display" class="text-sm text-gray-500 font-medium"></span>
                         </div>
                         <button id="load-pricing-btn" class="w-full sm:w-auto bg-blue-500 text-white py-2 px-4 rounded-md shadow-lg hover:bg-blue-600 transition font-semibold">
@@ -300,13 +286,11 @@
                             Download Excel
                         </button>
                     </div>
-                    <!-- UPDATED: Added overflow-x-auto, border, and rounded-lg -->
                     <div class="overflow-x-auto rounded-lg border border-gray-200">
-                        <!-- UPDATED: Removed min-w-full, changed to w-full -->
                         <table class="w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr id="pricing-table-head">
-                                    <!-- Pricing headers (SL, CODE, etc.) -->
+                                    <!-- Pricing headers -->
                                 </tr>
                             </thead>
                             <tbody id="pricing-table-body" class="bg-white divide-y divide-gray-200">
@@ -333,7 +317,6 @@
         </div>
     </div>
 
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
@@ -344,8 +327,8 @@
                 brands: [],
                 vendors: [],
                 tempShipmentList: [],
-                allShipments: [], // Holds the full list for the details page
-                currentShipmentDetails: [], // Holds the currently *displayed* list (filtered or full)
+                allShipments: [], 
+                currentShipmentDetails: [], 
                 pricingData: [],
                 editingRowId: null,
             };
@@ -390,11 +373,13 @@
             // Shipment Details Page
             const detailsPage = document.getElementById('shipment-details-page');
             const searchBox = document.getElementById('search-box');
-            // const searchBtn = document.getElementById('search-btn'); // No longer needed
             const downloadDetailsBtn = document.getElementById('download-details-btn');
             const detailsTableHead = document.getElementById('details-table-head');
             const detailsTableBody = document.getElementById('details-table-body');
             const searchTotalDiv = document.getElementById('search-total');
+            // NEW: Selected Sum Display
+            const selectedSumDisplay = document.getElementById('selected-sum-display');
+            
             const editModal = document.getElementById('edit-modal');
             const editForm = document.getElementById('edit-form');
             const cancelEditBtn = document.getElementById('cancel-edit-btn');
@@ -403,7 +388,7 @@
             // Pricing Page
             const pricingPage = document.getElementById('pricing-page');
             const pricingDateInput = document.getElementById('pricing-date');
-            const pricingDateDisplay = document.getElementById('pricing-date-display'); // NEW
+            const pricingDateDisplay = document.getElementById('pricing-date-display');
             const loadPricingBtn = document.getElementById('load-pricing-btn');
             const downloadPricingBtn = document.getElementById('download-pricing-btn');
             const pricingTableHead = document.getElementById('pricing-table-head');
@@ -414,12 +399,10 @@
 
             // === HELPER FUNCTIONS ===
 
-            // Show/Hide Loader
             function showLoader(show = true) {
                 loader.classList.toggle('hidden', !show);
             }
 
-            // Show Alert
             function showAlert(message, isError = false) {
                 alertMessage.textContent = message;
                 alertBox.classList.remove('hidden', 'bg-green-500', 'bg-red-500', 'text-white');
@@ -433,17 +416,16 @@
                 }, 3000);
             }
 
-            // API Call Function
             async function apiCall(action, payload = {}) {
                 showLoader();
                 try {
                     const response = await fetch(GAS_URL, {
                         method: 'POST',
                         redirect: 'follow',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8', }, // Use utf-8
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8', },
                         body: JSON.stringify({
                             action,
-                            auth: state.currentUser, // Send auth details with every request
+                            auth: state.currentUser,
                             ...payload
                         })
                     });
@@ -461,7 +443,6 @@
                 }
             }
 
-            // Page Navigation
             function showPage(pageId) {
                 appPages.forEach(page => page.classList.add('hidden'));
                 document.getElementById(pageId).classList.remove('hidden');
@@ -476,55 +457,44 @@
                     }
                 });
                 
-                // Load data for page if needed
                 if (pageId === 'shipment-details-page' && state.allShipments.length === 0) {
                     loadShipmentDetails();
                 }
             }
             
-            // Apply User Permissions
             function applyPermissions() {
-                // Check for admin, case-insensitive
                 const isAdmin = state.currentUser && state.currentUser.access && state.currentUser.access.toLowerCase() === 'admin';
                 
                 if (!isAdmin) {
-                    // Hide admin-only menu items
                     menuItems.querySelector('[data-page="add-shipment-page"]').classList.add('hidden');
                     menuItems.querySelector('[data-page="pricing-page"]').classList.add('hidden');
                     
-                    // Hide admin-only buttons in UI
                     if(addBrandBtn) addBrandBtn.classList.add('hidden');
                     if(addVendorBtn) addVendorBtn.classList.add('hidden');
                     if(addToListBtn) addToListBtn.classList.add('hidden');
                     if(saveShipmentBtn) saveShipmentBtn.classList.add('hidden');
                     if(downloadDetailsBtn) downloadDetailsBtn.classList.add('hidden');
                     
-                    // Show Shipment Details by default for non-admin
                     showPage('shipment-details-page');
                 } else {
-                    // Show all elements for admin
                     menuItems.querySelector('[data-page="add-shipment-page"]').classList.remove('hidden');
                     menuItems.querySelector('[data-page="pricing-page"]').classList.remove('hidden');
                     showPage('add-shipment-page');
                 }
             }
             
-            // *** UPDATED: Helper to format date as "10 November 2025" ***
             function formatDateSimple(dateString) {
                 if (!dateString) return '';
                 
                 let date;
-                // Check if it's a full ISO string (from server) or just YYYY-MM-DD (from picker)
                 if (dateString.includes('T')) {
-                    date = new Date(dateString); // This is UTC, e.g., 2025-11-08T00:00:00Z
+                    date = new Date(dateString);
                 } else {
-                    // This is 'YYYY-MM-DD'. Parse it as local midnight to avoid shifting.
                     const parts = dateString.split('-');
                     if (parts.length === 3) {
-                        // new Date(year, monthIndex, day)
                         date = new Date(parts[0], parts[1] - 1, parts[2]); 
                     } else {
-                        date = new Date(dateString); // Fallback, though might be unreliable
+                        date = new Date(dateString);
                     }
                 }
                 
@@ -535,7 +505,6 @@
                 });
             }
 
-            // *** UPDATED: This function is still used by checkProductCode ***
             function formatDateWithDay(dateString) {
                 if (!dateString) return '';
 
@@ -547,7 +516,7 @@
                     if (parts.length === 3) {
                         date = new Date(parts[0], parts[1] - 1, parts[2]);
                     } else {
-                        date = new Date(dateString); // Fallback
+                        date = new Date(dateString);
                     }
                 }
                 
@@ -558,7 +527,6 @@
                     day: 'numeric' 
                 });
             }
-
 
             // === LOGIN / LOGOUT ===
             loginForm.addEventListener('submit', async (e) => {
@@ -591,17 +559,16 @@
                 state.vendors = [];
                 appPage.classList.add('hidden');
                 loginPage.classList.remove('hidden');
-                // Clear datalists
+                
                 brandListDatalist.innerHTML = '';
                 vendorListDatalist.innerHTML = '';
-                // Reset tables
+                
                 detailsTableBody.innerHTML = '';
                 detailsTableHead.innerHTML = '';
                 pricingTableBody.innerHTML = '';
                 pricingTableHead.innerHTML = '';
             });
             
-            // === INITIAL DATA LOAD ===
             async function loadInitialData() {
                 const result = await apiCall('getInitialData');
                 if (result) {
@@ -627,7 +594,6 @@
                 });
             }
 
-            // === PWA Registration ===
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('sw.js')
@@ -636,7 +602,6 @@
                 });
             }
 
-            // Check for saved user on page load
             (function checkSavedLogin() {
                 const savedUser = localStorage.getItem('currentUser');
                 if (savedUser) {
@@ -656,21 +621,17 @@
                 }
             })();
             
-            // === PAGE NAVIGATION ===
             navButtons.forEach(button => {
                 button.addEventListener('click', () => showPage(button.dataset.page));
             });
 
             // === ADD SHIPMENT PAGE ===
-            
-            // Set current date
             const today = new Date().toISOString().split('T')[0];
             shipmentDateInput.value = today;
-            updateDateDay(today); // Use new function
+            updateDateDay(today);
 
             shipmentDateInput.addEventListener('change', (e) => updateDateDay(e.target.value));
 
-            // UPDATED: This function now updates the span with "10 November 2025" format
             function updateDateDay(dateString) {
                 if (!dateString) {
                     dateDaySpan.textContent = '';
@@ -679,7 +640,6 @@
                 dateDaySpan.textContent = formatDateSimple(dateString);
             }
 
-            // Calculations
             function updateCalculations() {
                 const qty = parseFloat(quantityInput.value) || 0;
                 const pkr = parseFloat(pkrInput.value) || 0;
@@ -700,7 +660,6 @@
                 const discountPercent = parseFloat(discountPercentInput.value) || 0;
                 const eachDiscount = pkr * (discountPercent / 100);
                 eachDiscountInput.value = eachDiscount.toFixed(0);
-                // Trigger other calculations that depend on this
                 updateCalculations();
             }
             
@@ -712,10 +671,9 @@
                 input.addEventListener('input', calculateEachDiscount);
             });
 
-            // Product Code Check (on change)
             productCodeInput.addEventListener('change', async () => {
                 const code = productCodeInput.value;
-                if (code.length < 1) { // Changed from 3 to 1
+                if (code.length < 1) {
                     productHistoryDiv.classList.add('hidden');
                     return;
                 }
@@ -723,7 +681,6 @@
                 if (result && result.totalQty > 0) {
                     let historyHtml = `<strong>Previous Entries (${result.totalQty} Total):</strong><br>`;
                     result.history.forEach(item => {
-                        // Use the original date formatter for this history view
                         historyHtml += `<span>${formatDateWithDay(item.date)}: ${item.qty} pcs</span><br>`;
                     });
                     productHistoryDiv.innerHTML = historyHtml;
@@ -732,12 +689,10 @@
                     productHistoryDiv.textContent = 'No previous entries found.';
                     productHistoryDiv.classList.remove('hidden');
                 } else {
-                    // API call failed, hide the div
                     productHistoryDiv.classList.add('hidden');
                 }
             });
 
-            // Brand/Vendor Add Buttons
             brandNameInput.addEventListener('input', () => {
                 const val = brandNameInput.value;
                 const isAdmin = state.currentUser && state.currentUser.access && state.currentUser.access.toLowerCase() === 'admin';
@@ -772,8 +727,6 @@
                 }
             });
 
-
-            // Function to reset only specific fields
             function resetAddShipmentForm() {
                 productCodeInput.value = '';
                 quantityInput.value = '';
@@ -788,7 +741,6 @@
                 productHistoryDiv.classList.add('hidden');
             }
 
-            // Add to List
             addToListBtn.addEventListener('click', () => {
                 const item = {
                     productCode: productCodeInput.value,
@@ -796,7 +748,7 @@
                     quantity: parseFloat(quantityInput.value) || 0,
                     pkr: parseFloat(pkrInput.value) || 0,
                     totalPkr: parseFloat(totalPkrInput.value) || 0,
-                    weight: (parseFloat(weightInput.value) || 0) / 1000, // Convert g to kg
+                    weight: (parseFloat(weightInput.value) || 0) / 1000,
                     discountPercent: parseFloat(discountPercentInput.value) || 0,
                     eachDiscountAmount: parseFloat(eachDiscountInput.value) || 0,
                     commissionAmount: parseFloat(commissionInput.value) || 0,
@@ -804,10 +756,9 @@
                     shipmentDate: shipmentDateInput.value,
                     vendorName: vendorNameInput.value,
                     total: parseFloat(totalInput.value) || 0,
-                    id: Date.now() // Unique ID for temp list
+                    id: Date.now()
                 };
                 
-                // Simple validation
                 if (!item.productCode || !item.brandName || !item.quantity || !item.shipmentDate || !item.vendorName) {
                     showAlert('Please fill all required fields (Code, Brand, Qty, Date, Vendor).', true);
                     return;
@@ -815,8 +766,6 @@
                 
                 state.tempShipmentList.push(item);
                 renderTempList();
-                
-                // Call partial reset function
                 resetAddShipmentForm(); 
             });
             
@@ -828,9 +777,7 @@
                 }
                 
                 state.tempShipmentList.forEach((item, index) => {
-                    // UPDATED: Format date in the table
                     const formattedDate = formatDateSimple(item.shipmentDate);
-                    // FIXED: Removed whitespace-nowrap, added whitespace-normal and break-words
                     const row = `
                         <tr data-id="${item.id}">
                             <td class="px-2 py-2 whitespace-normal break-words text-sm">${item.productCode}</td>
@@ -854,7 +801,6 @@
                     tempListBody.innerHTML += row;
                 });
                 
-                // Add event listeners to new remove buttons
                 document.querySelectorAll('.remove-item-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const id = parseInt(e.target.dataset.id);
@@ -866,14 +812,12 @@
                 saveShipmentBtn.classList.remove('hidden');
             }
             
-            // Save Shipment
             saveShipmentBtn.addEventListener('click', async () => {
                 const result = await apiCall('saveShipment', { items: state.tempShipmentList });
                 if (result) {
                     showAlert(`Successfully saved ${result.saved} items.`);
                     state.tempShipmentList = [];
                     renderTempList();
-                    // Clear the main shipment list cache to force refresh
                     state.allShipments = []; 
                 }
             });
@@ -884,41 +828,70 @@
                 const result = await apiCall('getShipmentDetails');
                 if (result) {
                     state.allShipments = result.data;
-                    state.currentShipmentDetails = state.allShipments; // By default, show all
+                    state.currentShipmentDetails = state.allShipments;
                     renderDetailsTable(state.currentShipmentDetails);
                 }
             }
             
+            // NEW: Function to update the selected sum
+            function updateSelectedTotal() {
+                const checkboxes = document.querySelectorAll('.row-select-checkbox:checked');
+                let sum = 0;
+                let count = 0;
+                checkboxes.forEach(cb => {
+                    sum += parseFloat(cb.dataset.total) || 0;
+                    count++;
+                });
+                
+                if (count > 0) {
+                    selectedSumDisplay.textContent = `Selected Total: ${sum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                    selectedSumDisplay.classList.remove('hidden');
+                } else {
+                    selectedSumDisplay.classList.add('hidden');
+                }
+            }
+
             function renderDetailsTable(data) {
+                // Reset selection on re-render
+                selectedSumDisplay.classList.add('hidden');
+
                 if (data.length === 0) {
                     detailsTableHead.innerHTML = '';
                     detailsTableBody.innerHTML = '<tr><td colspan="100%" class="text-center p-4">No data found.</td></tr>';
                     return;
                 }
                 
-                // Create headers
                 const headers = Object.keys(data[0]).filter(h => h !== 'rowId');
                 let headHtml = '';
+                
+                // NEW: Add Select All checkbox header
+                headHtml += `<th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">
+                                <input type="checkbox" id="select-all-checkbox" class="cursor-pointer">
+                             </th>`;
+
                 headers.forEach(h => {
-                    // UPDATED: Removed tracking-wider, added whitespace-normal to allow header wrapping
                     headHtml += `<th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">${h}</th>`;
                 });
-                // Case-insensitive admin check
+                
                 const isAdmin = state.currentUser && state.currentUser.access && state.currentUser.access.toLowerCase() === 'admin';
                 if (isAdmin) {
-                    // UPDATED: Reduced padding (px-3 to px-2, py-3 to py-2)
                     headHtml += `<th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">Actions</th>`;
                 }
                 detailsTableHead.innerHTML = `<tr>${headHtml}</tr>`;
                 
-                // Create body
                 let bodyHtml = '';
                 data.forEach(item => {
                     bodyHtml += `<tr data-row-id="${item.rowId}">`;
+                    
+                    // NEW: Add Checkbox Column with Total data
+                    const itemTotal = parseFloat(item['TOTAL']) || 0;
+                    bodyHtml += `<td class="px-2 py-2 text-sm">
+                                    <input type="checkbox" class="row-select-checkbox cursor-pointer" data-total="${itemTotal}">
+                                 </td>`;
+
                     headers.forEach(header => {
                         let value = item[header];
                         
-                        // *** UPDATED: Apply number formatting ***
                         const moneyHeaders = ['PKR', 'TOTAL PKR', 'EACH DISCOUNT AMOUNT', 'COMMISSION AMOUNT', 'AFTER DISCOUNT', 'TOTAL'];
 
                         if (header === 'SHIPMENT DATE' && value) {
@@ -930,15 +903,12 @@
                         } else if (header === 'DISCOUNT %' && value) {
                             value = (parseFloat(value) || 0).toFixed(0);
                         } else if (moneyHeaders.includes(header) && (value || value === 0)) {
-                            value = (parseFloat(value) || 0).toFixed(2); // <-- FIX for .650000001
+                            value = (parseFloat(value) || 0).toFixed(2);
                         }
-                        // *** END OF UPDATE ***
 
-                        // UPDATED: Removed whitespace-nowrap, added whitespace-normal and break-words
                         bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${value}</td>`;
                     });
                     if (isAdmin) {
-                        // UPDATED: Reduced padding (px-3 to px-2, py-2)
                         bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">
                                        <button class="edit-btn text-blue-500 hover:text-blue-700" data-row-id="${item.rowId}">Edit</button>
                                    </td>`;
@@ -947,30 +917,40 @@
                 });
                 detailsTableBody.innerHTML = bodyHtml;
                 
-                // Add edit button listeners
                 document.querySelectorAll('.edit-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => openEditModal(e.target.dataset.rowId));
                 });
+
+                // NEW: Attach Checkbox Listeners
+                document.querySelectorAll('.row-select-checkbox').forEach(cb => {
+                    cb.addEventListener('change', updateSelectedTotal);
+                });
+
+                // NEW: Select All Listener
+                const selectAllCb = document.getElementById('select-all-checkbox');
+                if (selectAllCb) {
+                    selectAllCb.addEventListener('change', (e) => {
+                        const isChecked = e.target.checked;
+                        document.querySelectorAll('.row-select-checkbox').forEach(cb => {
+                            cb.checked = isChecked;
+                        });
+                        updateSelectedTotal();
+                    });
+                }
             }
 
-            // *** UPDATED: Real-time, partial search on the 'input' event ***
             searchBox.addEventListener('input', () => {
                 const searchTerm = searchBox.value.toLowerCase();
                 
                 if (!searchTerm) {
-                    // If search is empty, show all shipments
                     state.currentShipmentDetails = state.allShipments;
-                    searchTotalDiv.classList.add('hidden'); // Hide total
+                    searchTotalDiv.classList.add('hidden');
                 } else {
-                    // Filter the *already loaded* allShipments array
                     state.currentShipmentDetails = state.allShipments.filter(item => {
-                        // Ensure 'PRODUCTS CODE' exists and is a string before calling toLowerCase
                         const productCode = (item['PRODUCTS CODE'] || '').toString().toLowerCase();
-                        // Check if product code *includes* the search term
                         return productCode.includes(searchTerm);
                     });
 
-                    // Show total for filtered results
                     if (state.currentShipmentDetails.length > 0) {
                         const totalQty = state.currentShipmentDetails.reduce((sum, item) => sum + (parseFloat(item['QUANTITY']) || 0), 0);
                         searchTotalDiv.textContent = `Found ${state.currentShipmentDetails.length} items - Total Quantity: ${totalQty}`;
@@ -981,25 +961,18 @@
                     }
                 }
                 
-                // Re-render the table with the filtered data
                 renderDetailsTable(state.currentShipmentDetails);
             });
             
-            // The old 'searchBox.addEventListener('keyup', ...)' for 'Enter' is now REMOVED.
-
             downloadDetailsBtn.addEventListener('click', () => {
-                // Download only the *currently displayed* data
                 const dataToDownload = state.currentShipmentDetails.map(item => {
-                    // Create a new object to avoid modifying the state
                     const newItem = {...item};
-                    delete newItem.rowId; // Remove rowId for download
+                    delete newItem.rowId; 
                     
-                    // *** UPDATED: Format date for Excel download ***
                     if (newItem['SHIPMENT DATE']) {
                         newItem['SHIPMENT DATE'] = formatDateSimple(newItem['SHIPMENT DATE']);
                     }
 
-                    // *** UPDATED: Format numbers for Excel download ***
                     const moneyHeaders = ['PKR', 'TOTAL PKR', 'EACH DISCOUNT AMOUNT', 'COMMISSION AMOUNT', 'AFTER DISCOUNT', 'TOTAL'];
                     if (newItem['WEIGHT']) newItem['WEIGHT'] = (parseFloat(newItem['WEIGHT']) || 0).toFixed(3);
                     if (newItem['QUANTITY']) newItem['QUANTITY'] = (parseFloat(newItem['QUANTITY']) || 0).toFixed(0);
@@ -1025,7 +998,7 @@
                 if (!item) return;
                 
                 state.editingRowId = rowId;
-                editForm.innerHTML = ''; // Clear previous form
+                editForm.innerHTML = ''; 
                 
                 const itemKeys = {
                     'PRODUCTS CODE': 'productCode',
@@ -1049,7 +1022,7 @@
                     let inputType = 'text';
                     let isReadOnly = false;
                     let listName = '';
-                    let extraHtml = ''; // To add formatted date
+                    let extraHtml = ''; 
                     
                     if (['TOTAL PKR', 'EACH DISCOUNT AMOUNT', 'AFTER DISCOUNT', 'TOTAL'].includes(header)) {
                         isReadOnly = true;
@@ -1064,18 +1037,15 @@
                     if (header === 'SHIPMENT DATE' && value) {
                         inputType = 'date';
                         const dateObj = new Date(value);
-                        // Format to YYYY-MM-DD for the input value
                         const year = dateObj.getFullYear();
                         const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
                         const day = dateObj.getDate().toString().padStart(2, '0');
                         value = `${year}-${month}-${day}`;
                         
-                        // Add span to show formatted date
-                        // We must pass the original full date string (or object) to formatDateSimple
                         extraHtml = `<span class="text-sm text-gray-500 font-medium">${formatDateSimple(item[header])}</span>`;
                     }
                     if (header === 'WEIGHT' && value) {
-                        value = (parseFloat(value) || 0) * 1000; // Convert kg back to g
+                        value = (parseFloat(value) || 0) * 1000;
                     }
                     
                     editForm.innerHTML += `
@@ -1090,7 +1060,6 @@
                     `;
                 });
 
-                // Add event listener to the new date input in the modal
                 const editDateInput = document.getElementById('edit-shipmentDate');
                 if (editDateInput) {
                     editDateInput.addEventListener('change', (e) => {
@@ -1101,7 +1070,6 @@
                     });
                 }
                 
-                // Add calculation logic to edit modal inputs
                 const editQty = document.getElementById('edit-quantity');
                 const editPkr = document.getElementById('edit-pkr');
                 const editTotalPkr = document.getElementById('edit-totalPkr');
@@ -1116,7 +1084,7 @@
                     const discountPercent = parseFloat(editDiscountPercent.value) || 0;
                     const eachDiscount = pkr * (discountPercent / 100);
                     editEachDiscount.value = eachDiscount.toFixed(0);
-                    updateEditCalculations(); // Trigger main calculation
+                    updateEditCalculations(); 
                 }
 
                 function updateEditCalculations() {
@@ -1134,7 +1102,6 @@
                     editTotal.value = total.toFixed(0);
                 }
 
-                // Attach listeners
                 [editQty, editPkr, editCommission].forEach(input => {
                     if(input) input.addEventListener('input', updateEditCalculations);
                 });
@@ -1159,14 +1126,12 @@
                     let value = input.value;
                     if (input.type === 'number') value = parseFloat(value) || 0;
                     if (input.type === 'date') {
-                        // input.value is 'YYYY-MM-DD'. We need to convert it to a Date object.
-                        // By creating it this way, it's local midnight, which GAS will handle correctly.
                         const parts = input.value.split('-');
                         value = new Date(parts[0], parts[1] - 1, parts[2]); 
                     }
                     
                     if (header === 'WEIGHT') {
-                        value = (parseFloat(input.value) || 0) / 1000; // Convert g to kg
+                        value = (parseFloat(input.value) || 0) / 1000; 
                     }
 
                     updatedItem[key] = value;
@@ -1177,13 +1142,12 @@
                 if (result) {
                     showAlert('Shipment updated successfully.');
                     editModal.classList.add('hidden');
-                    loadShipmentDetails(); // Refresh data
+                    loadShipmentDetails(); 
                 }
             });
 
             // === PRICING PAGE ===
 
-            // NEW: Add listener to update display span
             pricingDateInput.addEventListener('change', (e) => {
                 if (!e.target.value) {
                     pricingDateDisplay.textContent = '';
@@ -1214,17 +1178,11 @@
             });
             
             function renderPricingTable(data) {
-                // Headers
-                // UPDATED: Removed tracking-wider, added whitespace-normal
                 pricingTableHead.innerHTML = `<tr>${pricingHeaders.map(h => `<th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-normal">${h}</th>`).join('')}</tr>`;
                 
-                // Body
                 let bodyHtml = '';
                 data.forEach((item, index) => {
                     bodyHtml += '<tr>';
-                    // UPDATED: Reduced padding (px-3 to px-2, py-2)
-                    // *** UPDATED: Apply number formatting ***
-                    // *** UPDATED: Removed whitespace-nowrap, added whitespace-normal and break-words ***
                     bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${index + 1}</td>`; // SL
                     bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${item['PRODUCTS CODE']}</td>`; // CODE
                     bodyHtml += `<td class="px-2 py-2 whitespace-normal break-words text-sm">${(parseFloat(item['QUANTITY']) || 0).toFixed(0)}</td>`; // QUANTITY
@@ -1246,7 +1204,7 @@
                     'SL': index + 1,
                     'CODE': item['PRODUCTS CODE'],
                     'QUANTITY': (parseFloat(item['QUANTITY']) || 0).toFixed(0),
-                    'WEIGHT': (parseFloat(item['WEIGHT']) || 0).toFixed(3), // Format weight
+                    'WEIGHT': (parseFloat(item['WEIGHT']) || 0).toFixed(3), 
                     'PKR': (parseFloat(item['AFTER DISCOUNT']) || 0).toFixed(2),
                     'BD': '',
                     'BUY': '',
